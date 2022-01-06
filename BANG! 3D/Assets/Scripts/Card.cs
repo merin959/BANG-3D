@@ -24,21 +24,6 @@ public class Card : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IP
     private bool isFlipped;
     private int x = 0;
 
-
-    /*float clicked = 0;
-    float clicktime = 0;
-    float clickdelay = 0.5f;*/
-
-    private void Start()
-    {
-        //isFlipped = true;
-    }
-
-    private void Update()
-    {
-        
-    }
-
     public void OnPointerEnter(PointerEventData eventData)
     {
 
