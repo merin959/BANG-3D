@@ -11,6 +11,10 @@ public class Card : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IP
     private string cardName;
     private Sprite cardImage;
     private Sprite cardBack;
+    public GameObject front;
+    public GameObject back;
+    public Material frontMaterial;
+    public Material backMaterial;
     private string cardDescription;
     private string playingCardValue;
     private char playingCardColor;
@@ -61,12 +65,12 @@ public class Card : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IP
 
     public void FlipCard()
     {
-        if (x != 0) isFlipped = !isFlipped;
+        /*if (x != 0) isFlipped = !isFlipped;
         if (!isFlipped)
             this.gameObject.GetComponent<Image>().sprite = cardBack;
         else
             this.gameObject.GetComponent<Image>().sprite = cardImage;
-        x = 1;
+        x = 1;*/
     }
 
     public void SetUpCard(int cardType, string cardName, string cardPath, string cardDescription)
@@ -76,43 +80,44 @@ public class Card : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IP
         {
             case 0:
                 {
-                    cardBack = Resources.Load<Sprite>("Sprites/Card backs/Playing Card Background");
+                    cardBack = Resources.Load<Sprite>("Textures/Card backs/Playing Card Background");
                     break;
                 }
             case 1:
                 {
-                    cardBack = Resources.Load<Sprite>("Sprites/Card backs/High Noon Background");
+                    cardBack = Resources.Load<Sprite>("Textures/Card backs/High Noon Background");
                     break;
                 }
             case 2:
                 {
-                    cardBack = Resources.Load<Sprite>("Sprites/Card backs/Fistful Background");
+                    cardBack = Resources.Load<Sprite>("Textures/Card backs/Fistful Background");
                     break;
                 }
             case 3:
                 {
-                    cardBack = Resources.Load<Sprite>("Sprites/Card backs/Wild West Background");
+                    cardBack = Resources.Load<Sprite>("Textures/Card backs/Wild West Background");
                     break;
                 }
             case 4:
                 {
-                    cardBack = Resources.Load<Sprite>("Sprites/Card backs/Gold Rush Background");
+                    cardBack = Resources.Load<Sprite>("Textures/Card backs/Gold Rush Background");
                     break;
                 }
             case 5:
                 {
-                    cardBack = Resources.Load<Sprite>("Sprites/Card backs/Character Background");
+                    cardBack = Resources.Load<Sprite>("Textures/Card backs/Character Background");
                     break;
                 }
             case 6:
                 {
-                    cardBack = Resources.Load<Sprite>("Sprites/Card backs/Role Background");
+                    cardBack = Resources.Load<Sprite>("Textures/Card backs/Role Background");
                     break;
                 }
         }
         this.cardName = cardName;
         this.cardImage = Resources.Load<Sprite>(cardPath);
         this.cardDescription = cardDescription;
+        SetUpCardTexture();
     }
 
     public void SetUpPlayingCard(int cardType, string cardName, string cardPath, string cardDescription, string playingCardValue, char playingCardColor, int playingCardType)
@@ -140,5 +145,18 @@ public class Card : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IP
     {
         SetUpPlayingCard(cardType, cardName, cardPath, cardDescription, playingCardValue, playingCardColor, playingCardType);
         this.numberOfLoadTokens = numberOfLoadTokens;
+    }
+
+
+    private void SetUpCardTexture()
+    {
+        this.transform.Find("Front").GetComponent<MeshRenderer>().material.mainTextureScale = frontMaterial.mainTextureScale;
+        this.transform.Find("Back").GetComponent<MeshRenderer>().material.mainTextureScale = backMaterial.mainTextureScale;
+
+        this.transform.Find("Front").GetComponent<MeshRenderer>().material.mainTextureOffset = frontMaterial.mainTextureOffset;
+        this.transform.Find("Back").GetComponent<MeshRenderer>().material.mainTextureOffset = backMaterial.mainTextureOffset;
+
+        this.transform.Find("Front").GetComponent<MeshRenderer>().material.SetTexture("_MainTex", cardImage.texture);
+        this.transform.Find("Back").GetComponent<MeshRenderer>().material.SetTexture("_MainTex", cardBack.texture);
     }
 }
