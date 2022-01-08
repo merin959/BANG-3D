@@ -26,11 +26,10 @@ public class Card : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IP
     private int characterCardLives;
     public int CharacterCardLives { get { return characterCardLives; } }
     private bool isFlipped;
-    private int x = 0;
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-
+        Debug.Log(cardName + ": " + eventData.position);
         if (isFlipped)
         {
             transform.localScale = new Vector3(0.8f, 0.8f, 1);
@@ -60,21 +59,18 @@ public class Card : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IP
 
         }
         else if (clicked > 2 || Time.time - clicktime > 1) clicked = 0;*/
-        //if (isFlipped) transform.localScale = new Vector3(0.5f, 0.5f, 1);
+        if (isFlipped) transform.localScale = new Vector3(0.5f, 0.5f, 1);
     }
 
     public void FlipCard()
     {
-        /*if (x != 0) isFlipped = !isFlipped;
-        if (!isFlipped)
-            this.gameObject.GetComponent<Image>().sprite = cardBack;
-        else
-            this.gameObject.GetComponent<Image>().sprite = cardImage;
-        x = 1;*/
+        isFlipped = !isFlipped;
+        //transform.Rotate(new Vector3(0, 0, 180));
     }
 
     public void SetUpCard(int cardType, string cardName, string cardPath, string cardDescription)
     {
+        isFlipped = true;
         this.cardType = cardType;
         switch (cardType)
         {
@@ -150,6 +146,7 @@ public class Card : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IP
 
     private void SetUpCardTexture()
     {
+        transform.localScale = new Vector3(0.775f, 0.775f, 0.775f);
         this.transform.Find("Front").GetComponent<MeshRenderer>().material.mainTextureScale = frontMaterial.mainTextureScale;
         this.transform.Find("Back").GetComponent<MeshRenderer>().material.mainTextureScale = backMaterial.mainTextureScale;
 

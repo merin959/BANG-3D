@@ -233,7 +233,7 @@ public class Game : MonoBehaviour
             i++;
             go.GetComponent<Card>().FlipCard();
             go.transform.SetParent(GameArea.transform, false);
-            go.transform.localPosition = new Vector3(i * 20, 0, 0);
+            go.transform.localPosition = new Vector3(i * 15 - 112, 0, 49);
             //go.transform.eulerAngles = Vector3.forward * (r.Next(0, 10) + 355);
         }
     }
@@ -261,7 +261,7 @@ public class Game : MonoBehaviour
             i++;
             go.GetComponent<Card>().FlipCard();
             go.transform.SetParent(GameArea.transform, false);
-            go.transform.localPosition = new Vector3(i * 20, 0, 30);
+            go.transform.localPosition = new Vector3(i * 15 - 112, 0, 24.5f);
             //go.transform.eulerAngles = Vector3.forward * (r.Next(0, 10) + 355);
         }
     }
@@ -291,7 +291,7 @@ public class Game : MonoBehaviour
             i++;
             go.GetComponent<Card>().FlipCard();
             go.transform.SetParent(GameArea.transform, false);
-            go.transform.localPosition = new Vector3(i * 20, 0, -30);
+            go.transform.localPosition = new Vector3(i * 15 - 112, 0, 0);
             //go.transform.eulerAngles = Vector3.forward * (r.Next(0, 10) + 355);
         }
     }
@@ -316,7 +316,7 @@ public class Game : MonoBehaviour
             i++;
             go.GetComponent<Card>().FlipCard();
             go.transform.SetParent(GameArea.transform, false);
-            go.transform.localPosition = new Vector3(i * 20, 0, 60);
+            go.transform.localPosition = new Vector3(i * 15 - 112, 0, -24.5f);
             //go.transform.eulerAngles = Vector3.forward * (r.Next(0, 10) + 355);
         }
     }
@@ -354,7 +354,7 @@ public class Game : MonoBehaviour
             i++;
             go.GetComponent<Card>().FlipCard();
             go.transform.SetParent(GameArea.transform, false);
-            go.transform.localPosition = new Vector3(i * 20, 0, -60);
+            go.transform.localPosition = new Vector3(i * 15 - 112, 0, -49);
             //go.transform.eulerAngles = Vector3.forward * (r.Next(0, 10) + 355);
         }
 
@@ -439,7 +439,7 @@ public class Game : MonoBehaviour
             i++;
             go.GetComponent<Card>().FlipCard();
             go.transform.SetParent(GameArea.transform, false);
-            go.transform.localPosition = new Vector3(i * 20, 0, -90);
+            go.transform.localPosition = new Vector3(i * 15 - 112, 0, -73.5f);
             //go.transform.eulerAngles = Vector3.forward * (r.Next(0, 10) + 355);
         }
     }
@@ -462,7 +462,7 @@ public class Game : MonoBehaviour
             i++;
             go.GetComponent<Card>().FlipCard();
             go.transform.SetParent(GameArea.transform, false);
-            go.transform.localPosition = new Vector3(i * 20, 0, 90);
+            go.transform.localPosition = new Vector3(i * 15 - 112, 0, 98);
             //go.transform.eulerAngles = Vector3.forward * (r.Next(0, 10) + 355);
         }
     }

@@ -5,10 +5,13 @@ using UnityEngine.UI;
 
 public class SceneManager : MonoBehaviour
 {
+    public void Start()
+    {
+        Screen.fullScreen = true;
+    }
     public void ChangeScene(int scene)
     {
         UnityEngine.SceneManagement.SceneManager.LoadScene(scene);
-        Screen.fullScreen = true;
     }
 
     public void QuitGame()
