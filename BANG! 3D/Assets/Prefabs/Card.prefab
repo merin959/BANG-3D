@@ -10,9 +10,11 @@ GameObject:
   m_Component:
   - component: {fileID: 2366326625840643864}
   - component: {fileID: 9125647137820716052}
+  - component: {fileID: 756306241825758542}
+  - component: {fileID: 4446827557871099340}
   m_Layer: 0
   m_Name: Card
-  m_TagString: Untagged
+  m_TagString: Drag
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -49,6 +51,33 @@ MonoBehaviour:
   back: {fileID: 6050318441525100835}
   frontMaterial: {fileID: 2100000, guid: 2200034d77d0e31438d2e3d32459283f, type: 2}
   backMaterial: {fileID: 2100000, guid: c315fd1e005df44468ff7764f1773d88, type: 2}
+--- !u!64 &756306241825758542
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2366326625840643865}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 0
+  serializedVersion: 4
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 3660652376195365350, guid: 42d873f2c1d654a47a9c6dfb4dea2a4a, type: 3}
+--- !u!65 &4446827557871099340
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2366326625840643865}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 19.4, y: 0.25, z: 27.1}
+  m_Center: {x: 0.65, y: 0, z: 1.34}
 --- !u!1001 &2366326624215810846
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -165,7 +194,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 0464afc39207ab540b94807b2273e3e5, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 1.23
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 0464afc39207ab540b94807b2273e3e5, type: 3}
       propertyPath: m_LocalPosition.y

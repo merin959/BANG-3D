@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class Tooltip : MonoBehaviour
 {
-    private static Tooltip instance;
+    public static Tooltip instance;
 
     private Text tooltipText;
     private RectTransform backgroundRectTransform;
@@ -13,10 +13,11 @@ public class Tooltip : MonoBehaviour
 
     private void Awake()
     {
+        instance = this;
         backgroundRectTransform = transform.Find("Background").GetComponent<RectTransform>();
         tooltipText = transform.Find("Text").GetComponent<Text>();
         textRectTransform = transform.Find("Text").GetComponent<RectTransform>();
-        ShowTooltip("Instead of drawing in phase 1, each player guesses if the suit of the top card of the deck is red or black. He then draws and shows it; if he guessed right, he keeps it and guesses again; otherwise he proceeds to phase 2.");
+        //ShowTooltip("Instead of drawing in phase 1, each player guesses if the suit of the top card of the deck is red or black. He then draws and shows it; if he guessed right, he keeps it and guesses again; otherwise he proceeds to phase 2.");
     }
 
     private void Update()
@@ -28,7 +29,7 @@ public class Tooltip : MonoBehaviour
                                          anchoredPosition.y > 0 ? anchoredPosition.y + 540 - backgroundRectTransform.sizeDelta.y / 2 : anchoredPosition.y + 540 + backgroundRectTransform.sizeDelta.y / 2);
     }
 
-    private void ShowTooltip(string tooltipString)
+    public void ShowTooltip(string tooltipString)
     {
         gameObject.SetActive(true);
 
@@ -38,7 +39,7 @@ public class Tooltip : MonoBehaviour
         textRectTransform.sizeDelta = new Vector2(tooltipText.preferredWidth > 540 ? 540 : tooltipText.preferredWidth, tooltipText.preferredHeight);
     }
 
-    private void HideTooltip()
+    public void HideTooltip()
     {
         gameObject.SetActive(false);
     }
