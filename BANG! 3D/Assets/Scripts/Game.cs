@@ -53,17 +53,19 @@ public class Game : MonoBehaviour
                     if (dragAndDropObject.IsFlipped)
                     {
                         ddObjectPosition = dragAndDropObject.transform.position;
-                        Cursor.visible = false;
+                        //Cursor.visible = false;
                     }
                     else dragAndDropObject = null;
                 }
             }
             else
             {
+                Debug.Log("Down");
                 Vector3 worldPosition = GameCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, GameCamera.WorldToScreenPoint(dragAndDropObject.transform.position).z));
-                //dragAndDropObject.transform.position = new Vector3(worldPosition.x, -59.90004f, worldPosition.z);
-                if ((dragAndDropObject.transform.position.x < 3 && dragAndDropObject.transform.position.x > -3) && (dragAndDropObject.transform.position.y < 3 && dragAndDropObject.transform.position.y > -3))
-                    dragAndDropObject.transform.position = new Vector3(0, 0, 0);
+
+                //this below will change for each card type
+                if ((dragAndDropObject.transform.position.x < 391.3f && dragAndDropObject.transform.position.x > 384.3f) && (dragAndDropObject.transform.position.z < 2.6f && dragAndDropObject.transform.position.z > -9.2))
+                    dragAndDropObject.transform.localPosition = new Vector3(10, 0, 0);
                 else
                     dragAndDropObject.transform.position = ddObjectPosition;
 
@@ -118,11 +120,6 @@ public class Game : MonoBehaviour
     // card max position x: 97 y: 49    
     private void CreateDecks()
     {
-        /*Card c = Instantiate(Card).GetComponent<Card>();
-        c.GetComponent<Card>().SetUpPlayingCard(0, "BANG!", "Textures/Vanilla/Playing cards/Bang! 0", "Deal 1 damage to a player in range.", "A", '♠', 0);
-        c.GetComponent<Card>().FlipCard();
-        c.transform.SetParent(GameArea.transform, false);
-        c.transform.localPosition = new Vector3(20, 0, 30);*/
         for (int i = 0; i < 164; i++) cardDeck.Add(Instantiate(Card).GetComponent<Card>());
         for (int i = 0; i < 12; i++) highNoonDeck.Add(Instantiate(Card).GetComponent<Card>());
         for (int i = 0; i < 14; i++) fistfulDeck.Add(Instantiate(Card).GetComponent<Card>());
@@ -307,13 +304,13 @@ public class Game : MonoBehaviour
         cardDeck[162].SetUpPlayingCard(0, "Tequila", "Textures/Dodge City/Playing cards/Tequila", "Play this card and discard any other card to restore 1 life to any player (including yourself).", "9", '♣', 0);
         cardDeck[163].SetUpPlayingCard(0, "Whisky", "Textures/Dodge City/Playing cards/Whisky", "Play this card and discard any other card to restore 2 lifes.", "Q", '♥', 0);
         cardDeck = Shuffle(cardDeck);
-        int i = 0;
+        float i = 0.02f * cardDeck.Count;
         foreach (Card card in cardDeck)
         {
-            i++;
             card.FlipCard();
             card.transform.SetParent(GameArea.transform, false);
-            card.transform.localPosition = new Vector3(i * 17 - 75, 0, 49);
+            card.transform.localPosition = new Vector3(-10, i, 0);
+            i -= 0.02f;
         }
     }
 
@@ -334,13 +331,13 @@ public class Game : MonoBehaviour
         highNoonDeck = Shuffle(highNoonDeck);
         highNoonDeck.Add(Instantiate(Card).GetComponent<Card>());
         highNoonDeck[12].SetUpCard(1, "High Noon", "Textures/High Noon/Mezzogiorno di Fuoco", "Each player loses 1 life at the start of their turn.");
-        int i = 0;
+        float i = 0.02f * highNoonDeck.Count;
         foreach (Card card in highNoonDeck)
         {
-            i++;
             card.FlipCard();
             card.transform.SetParent(GameArea.transform, false);
-            card.transform.localPosition = new Vector3(i * 17 - 75, 0, 24.5f);
+            card.transform.localPosition = new Vector3(-55, i, 0);
+            i -= 0.02f;
         }
     }
 
@@ -363,13 +360,13 @@ public class Game : MonoBehaviour
         fistfulDeck = Shuffle(fistfulDeck);
         fistfulDeck.Add(Instantiate(Card).GetComponent<Card>());
         fistfulDeck[14].SetUpCard(2, "A Fistful of Cards", "Textures/A Fistful of Cards/Per un Ugno di Carte", "At the beginning of his turn, the player is target of as many BANGs! as the number of the cards in his hand.");
-        int i = 0;
+        float i = 0.02f * fistfulDeck.Count;
         foreach (Card card in fistfulDeck)
         {
-            i++;
             card.FlipCard();
             card.transform.SetParent(GameArea.transform, false);
-            card.transform.localPosition = new Vector3(i * 17 - 75, 0, 0);
+            card.transform.localPosition = new Vector3(-75, i, 0);
+            i -= 0.02f;
         }
     }
 
@@ -387,13 +384,13 @@ public class Game : MonoBehaviour
         wildWestDeck = Shuffle(wildWestDeck);
         wildWestDeck.Add(Instantiate(Card).GetComponent<Card>());
         wildWestDeck[9].SetUpCard(3, "Wild West Show", "Textures/Wild West Show/WWS cards/Wild West Show", "The goal of each player becomes: \"Be the last one in play!\"");
-        int i = 0;
+        float i = 0.02f * highNoonDeck.Count;
         foreach (Card card in wildWestDeck)
         {
-            i++;
             card.FlipCard();
             card.transform.SetParent(GameArea.transform, false);
-            card.transform.localPosition = new Vector3(i * 17 - 75, 0, -24.5f);
+            card.transform.localPosition = new Vector3(-95, i, 0);
+            i -= 0.02f;
         }
     }
 
@@ -424,22 +421,22 @@ public class Game : MonoBehaviour
         lootDeck[22].SetUpLootCard(4, "Union Pacific", "Textures/Gold Rush/Loot cards/Unoion Pacific", "Draw 4 cards.", 4, 0);
         lootDeck[23].SetUpLootCard(4, "Rucksack", "Textures/Gold Rush/Loot cards/Zaino", "Pay 2 golden nuggets to restore 1.", 3, 1);
         lootDeck = Shuffle(lootDeck);
-        int i = 0;
+        float i = 0.02f * highNoonDeck.Count;
         foreach (Card card in lootDeck)
         {
-            i++;
             card.FlipCard();
             card.transform.SetParent(GameArea.transform, false);
-            card.transform.localPosition = new Vector3(i * 17 - 75, 0, -49);
+            card.transform.localPosition = new Vector3(40, i, 0);
+            i -= 0.02f;
         }
 
         //dealing loot cards
-        /*for (int i = 1; i < 4; i++)
+        for (int j = 61; j <= 95; j += 17)
         {
-            lootDeck[0].transform.localPosition = new Vector3((350 + 150 * i), 0, 0);
+            lootDeck[0].transform.localPosition = new Vector3(j, 0, 0);
             lootDeck[0].GetComponent<Card>().FlipCard();
             lootDeck.RemoveAt(0);
-        }*/
+        }
     }
 
     private void SetUpCharacterDeck()
@@ -508,13 +505,13 @@ public class Game : MonoBehaviour
         characterDeck[61].SetUpCharacterCard(5, "Teren Kill", "Textures/Wild West Show/Characters/Teren Kill", "Each time he would be eliminated, he tests. If it isn't ♠, he stays at 1 life and draws 1.", 3);
         characterDeck[62].SetUpCharacterCard(5, "Youl Grinner", "Textures/Wild West Show/Characters/Youl Grinner", "Before drawing in phase 1, players with more cards in hand than him must give him 1 card of their choice.", 4);
         characterDeck = Shuffle(characterDeck);
-        int i = 0;
+        float i = 0.02f * highNoonDeck.Count;
         foreach (Card card in characterDeck)
         {
-            i++;
             card.FlipCard();
             card.transform.SetParent(GameArea.transform, false);
-            card.transform.localPosition = new Vector3(i * 17 - 75, 0, -73.5f);
+            card.transform.localPosition = new Vector3(0, i, 80);
+            i -= 0.02f;
         }
     }
 
@@ -530,13 +527,13 @@ public class Game : MonoBehaviour
         roleDeck[7].SetUpCard(6, "Renegade", "Textures/Vanilla/Roles/Rinnegato", "Be the last one in play!");
         //shadow renegate
         //roleDeck = Shuffle(roleDeck);
-        int i = 0;
+        float i = 0.02f * highNoonDeck.Count;
         foreach (Card card in roleDeck)
         {
-            i++;
             card.FlipCard();
             card.transform.SetParent(GameArea.transform, false);
-            card.transform.localPosition = new Vector3(i * 17 - 75, 0, 98);
+            card.transform.localPosition = new Vector3(20, i, 80);
+            i -= 0.02f;
         }
     }
 

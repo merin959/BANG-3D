@@ -33,8 +33,8 @@ public class Card : MonoBehaviour
 
     public void FlipCard()
     {
-        //isFlipped = !isFlipped;
-        //transform.Rotate(new Vector3(0, 0, 180));
+        isFlipped = !isFlipped;
+        transform.Rotate(new Vector3(0, 0, 180));
     }
 
     public void SetUpCard(int cardType, string cardName, string cardPath, string cardDescription)
