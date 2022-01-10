@@ -9,7 +9,9 @@ public class Card : MonoBehaviour
 {
     private int cardType;             // 0 = playing card, 1 = High Noon card, 2 = Fistful card, 3 = Wild West card, 4 = Gold Rush loot card, 5 = character card, 6 = role card
     private string cardName;
+    public string CardName { get { return cardName; } }
     private Sprite cardImage;
+    public Sprite CardImage { get { return cardImage; } }
     private Sprite cardBack;
     public GameObject front;
     public GameObject back;
@@ -115,7 +117,6 @@ public class Card : MonoBehaviour
 
     private void SetUpCardTexture()
     {
-        transform.localScale = new Vector3(0.775f, 0.775f, 0.775f);
         this.transform.Find("Front").GetComponent<MeshRenderer>().material.mainTextureScale = frontMaterial.mainTextureScale;
         this.transform.Find("Back").GetComponent<MeshRenderer>().material.mainTextureScale = backMaterial.mainTextureScale;
 

@@ -17,11 +17,13 @@ public class Tooltip : MonoBehaviour
         backgroundRectTransform = transform.Find("Background").GetComponent<RectTransform>();
         tooltipText = transform.Find("Text").GetComponent<Text>();
         textRectTransform = transform.Find("Text").GetComponent<RectTransform>();
+        //transform.SetAsLastSibling();
         //ShowTooltip("Instead of drawing in phase 1, each player guesses if the suit of the top card of the deck is red or black. He then draws and shows it; if he guessed right, he keeps it and guesses again; otherwise he proceeds to phase 2.");
     }
 
     private void Update()
     {
+        //transform.SetAsLastSibling();
         Vector2 anchoredPosition;
         RectTransformUtility.ScreenPointToLocalPointInRectangle(transform.parent.GetComponent<RectTransform>(), Input.mousePosition, null, out anchoredPosition);
 

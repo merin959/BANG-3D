@@ -8,6 +8,8 @@ public class Game : MonoBehaviour
 {
     public GameObject Card;
     public GameObject GameArea;
+    public GameObject Player;
+
     public Camera GameCamera;
 
     private Card dragAndDropObject;
@@ -15,8 +17,7 @@ public class Game : MonoBehaviour
 
     private Card tooltipObject;
 
-    //public GameObject Player;
-    //private List<GameObject> players = new List<GameObject>();
+    private List<Player> players = new List<Player>();
     private List<Card> cardDeck = new List<Card>();      // 164
     private List<Card> highNoonDeck = new List<Card>();  // 13
     private List<Card> fistfulDeck = new List<Card>();   // 15
@@ -26,13 +27,15 @@ public class Game : MonoBehaviour
     private List<Card> roleDeck = new List<Card>();      // 9 (-1 - Shadow Renegate)
     private List<Card> gameRoleDeck = new List<Card>();
 
+    private float MAX_X = 97;
+    private float MAX_Y = 50;
+
     private void Start()
     {
         Screen.fullScreen = true;
         CreateDecks();
-        //CreatePlayers(7);
-        //StartGame();
-        //players[1].GetComponent<Player>().DrawCard(cardDeck[0]);
+        CreatePlayers(8);
+        StartGame();
     }
 
     private void Update()
@@ -60,7 +63,6 @@ public class Game : MonoBehaviour
             }
             else
             {
-                Debug.Log("Down");
                 Vector3 worldPosition = GameCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, GameCamera.WorldToScreenPoint(dragAndDropObject.transform.position).z));
 
                 //this below will change for each card type
@@ -78,8 +80,6 @@ public class Game : MonoBehaviour
         {
             Vector3 worldPosition = GameCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, GameCamera.WorldToScreenPoint(dragAndDropObject.transform.position).z));
             dragAndDropObject.transform.position = new Vector3(worldPosition.x, -10f, worldPosition.z);
-
-            Debug.Log(dragAndDropObject.transform.position);
         }
 
         if (Input.GetMouseButtonDown(1))
@@ -116,8 +116,7 @@ public class Game : MonoBehaviour
             }
         }
     }
-
-    // card max position x: 97 y: 49    
+  
     private void CreateDecks()
     {
         for (int i = 0; i < 164; i++) cardDeck.Add(Instantiate(Card).GetComponent<Card>());
@@ -384,7 +383,7 @@ public class Game : MonoBehaviour
         wildWestDeck = Shuffle(wildWestDeck);
         wildWestDeck.Add(Instantiate(Card).GetComponent<Card>());
         wildWestDeck[9].SetUpCard(3, "Wild West Show", "Textures/Wild West Show/WWS cards/Wild West Show", "The goal of each player becomes: \"Be the last one in play!\"");
-        float i = 0.02f * highNoonDeck.Count;
+        float i = 0.02f * wildWestDeck.Count;
         foreach (Card card in wildWestDeck)
         {
             card.FlipCard();
@@ -421,7 +420,7 @@ public class Game : MonoBehaviour
         lootDeck[22].SetUpLootCard(4, "Union Pacific", "Textures/Gold Rush/Loot cards/Unoion Pacific", "Draw 4 cards.", 4, 0);
         lootDeck[23].SetUpLootCard(4, "Rucksack", "Textures/Gold Rush/Loot cards/Zaino", "Pay 2 golden nuggets to restore 1.", 3, 1);
         lootDeck = Shuffle(lootDeck);
-        float i = 0.02f * highNoonDeck.Count;
+        float i = 0.02f * lootDeck.Count;
         foreach (Card card in lootDeck)
         {
             card.FlipCard();
@@ -431,7 +430,7 @@ public class Game : MonoBehaviour
         }
 
         //dealing loot cards
-        for (int j = 61; j <= 95; j += 17)
+        for (int j = 65; j <= 95; j += 15)
         {
             lootDeck[0].transform.localPosition = new Vector3(j, 0, 0);
             lootDeck[0].GetComponent<Card>().FlipCard();
@@ -505,12 +504,12 @@ public class Game : MonoBehaviour
         characterDeck[61].SetUpCharacterCard(5, "Teren Kill", "Textures/Wild West Show/Characters/Teren Kill", "Each time he would be eliminated, he tests. If it isn't ♠, he stays at 1 life and draws 1.", 3);
         characterDeck[62].SetUpCharacterCard(5, "Youl Grinner", "Textures/Wild West Show/Characters/Youl Grinner", "Before drawing in phase 1, players with more cards in hand than him must give him 1 card of their choice.", 4);
         characterDeck = Shuffle(characterDeck);
-        float i = 0.02f * highNoonDeck.Count;
+        float i = 0.02f * characterDeck.Count;
         foreach (Card card in characterDeck)
         {
             card.FlipCard();
             card.transform.SetParent(GameArea.transform, false);
-            card.transform.localPosition = new Vector3(0, i, 80);
+            card.transform.localPosition = new Vector3(0, i, 100);
             i -= 0.02f;
         }
     }
@@ -527,12 +526,12 @@ public class Game : MonoBehaviour
         roleDeck[7].SetUpCard(6, "Renegade", "Textures/Vanilla/Roles/Rinnegato", "Be the last one in play!");
         //shadow renegate
         //roleDeck = Shuffle(roleDeck);
-        float i = 0.02f * highNoonDeck.Count;
+        float i = 0.02f * roleDeck.Count;
         foreach (Card card in roleDeck)
         {
             card.FlipCard();
             card.transform.SetParent(GameArea.transform, false);
-            card.transform.localPosition = new Vector3(20, i, 80);
+            card.transform.localPosition = new Vector3(20, i, 100);
             i -= 0.02f;
         }
     }
@@ -554,128 +553,110 @@ public class Game : MonoBehaviour
         return deck;
     }
 
-    /*private void CreatePlayers(int numberOfPlayers)
+    private void CreatePlayers(int numberOfPlayers)
     {
-        for (int i = 0; i < numberOfPlayers; i++) players.Add(Instantiate(Player));
+        for (int i = 0; i < numberOfPlayers; i++) players.Add(Instantiate(Player).GetComponent<Player>());
 
         for (int i = 0; i < numberOfPlayers; i++) gameRoleDeck.Add(roleDeck[i]);
 
         gameRoleDeck = Shuffle(gameRoleDeck);
         System.Random rand = new System.Random();
-        foreach (GameObject pl in players)
+        int x = 0;
+        foreach (Player player in players)
         {
-            int x = rand.Next(0, characterDeck.Count);
-            int y = rand.Next(0, gameRoleDeck.Count);
-            pl.GetComponent<Player>().SetUpPlayerInfo(characterDeck[x].GetComponent<Card>(), gameRoleDeck[y].GetComponent<Card>(), characterDeck[x].GetComponent<Card>().CharacterCardLives);
-            characterDeck[x].transform.SetParent(pl.transform, false);
-            characterDeck[x].transform.localPosition = new Vector3(-158, 98, 0);
-            gameRoleDeck[y].transform.SetParent(pl.transform, false);
-            gameRoleDeck[y].transform.localPosition = new Vector3(-158, -98, 0);
-            characterDeck[x].GetComponent<Card>().FlipCard();
-            characterDeck.RemoveAt(x);
-            gameRoleDeck.RemoveAt(y);
+            if (x >= players.Count / 2 + players.Count % 2) player.SetUpPlayerInfo(characterDeck[0], characterDeck[1], gameRoleDeck[0], false);
+            else player.SetUpPlayerInfo(characterDeck[0], characterDeck[1], gameRoleDeck[0], true);
+            player.transform.SetParent(Canvas.instance.transform.Find("PlayerAreas").transform);
+            characterDeck[0].FlipCard();
+            characterDeck.RemoveAt(0);
+            characterDeck.RemoveAt(0);
+            gameRoleDeck.RemoveAt(0);
+            x++;
         }
-
         switch (players.Count)
         {
             case 4:
                 {
-                    players[0].transform.SetParent(this.transform, false);
-                    players[0].transform.localPosition = new Vector3(-237, 325f, 0);
-                    players[1].transform.SetParent(this.transform, false);
-                    players[1].transform.localPosition = new Vector3(237, 325f, 0);
-                    players[2].transform.SetParent(this.transform, false);
-                    players[2].transform.localPosition = new Vector3(-237, -325f, 0);
-                    players[3].transform.SetParent(this.transform, false);
-                    players[3].transform.localPosition = new Vector3(237, -325f, 0);
+                    players[0].Characters[0].transform.localPosition = new Vector3(-MAX_X / 2, 0.1f, MAX_Y);
+                    players[1].Characters[0].transform.localPosition = new Vector3(MAX_X / 2, 0.1f, MAX_Y);
+                    players[2].Characters[0].transform.localPosition = new Vector3(-MAX_X / 2, 0.1f, -MAX_Y);
+                    players[3].Characters[0].transform.localPosition = new Vector3(MAX_X / 2, 0.1f, -MAX_Y);
+
+                    /*Vector2 canvasPos;
+                    Vector2 screenPoint = GameCamera.WorldToScreenPoint(players[0].Characters[0].transform.position);
+                    RectTransformUtility.ScreenPointToLocalPointInRectangle(Canvas.instance.GetComponent<RectTransform>(), screenPoint, null, out canvasPos);
+                    Debug.Log(canvasPos);
+
+
+                    players[0].transform.localPosition = canvasPos;// new Vector3(-434f, 417.5f, 0);
+                    players[1].transform.localPosition = new Vector3(434f, 417.5f, 0);
+                    players[2].transform.localPosition = new Vector3(-434f, -417.5f, 0);
+                    players[3].transform.localPosition = new Vector3(434f, -417.5f, 0);*/
                     break;
                 }
             case 5:
                 {
-                    players[0].transform.SetParent(this.transform, false);
-                    players[0].transform.localPosition = new Vector3(-474, 325f, 0);
-                    players[1].transform.SetParent(this.transform, false);
-                    players[1].transform.localPosition = new Vector3(0, 325f, 0);
-                    players[2].transform.SetParent(this.transform, false);
-                    players[2].transform.localPosition = new Vector3(474, 325f, 0);
-                    players[3].transform.SetParent(this.transform, false);
-                    players[3].transform.localPosition = new Vector3(-237, -325f, 0);
-                    players[4].transform.SetParent(this.transform, false);
-                    players[4].transform.localPosition = new Vector3(237, -325f, 0);
+                    players[0].Characters[0].transform.localPosition = new Vector3(-MAX_X * 3 / 4, 0.1f, MAX_Y);
+                    players[1].Characters[0].transform.localPosition = new Vector3(0, 0.1f, MAX_Y);
+                    players[2].Characters[0].transform.localPosition = new Vector3(MAX_X * 3 / 4, 0.1f, MAX_Y);
+                    players[3].Characters[0].transform.localPosition = new Vector3(-MAX_X * 2 / 3, 0.1f, -MAX_Y);
+                    players[4].Characters[0].transform.localPosition = new Vector3(MAX_X * 2 / 3, 0.1f, -MAX_Y);
                     break;
                 }
             case 6:
                 {
-                    players[0].transform.SetParent(this.transform, false);
-                    players[0].transform.localPosition = new Vector3(-474, 325f, 0);
-                    players[1].transform.SetParent(this.transform, false);
-                    players[1].transform.localPosition = new Vector3(0, 325f, 0);
-                    players[2].transform.SetParent(this.transform, false);
-                    players[2].transform.localPosition = new Vector3(474, 325f, 0);
-                    players[3].transform.SetParent(this.transform, false);
-                    players[3].transform.localPosition = new Vector3(-474, -325f, 0);
-                    players[4].transform.SetParent(this.transform, false);
-                    players[4].transform.localPosition = new Vector3(0, -325f, 0);
-                    players[5].transform.SetParent(this.transform, false);
-                    players[5].transform.localPosition = new Vector3(474, -325f, 0);
+                    players[0].Characters[0].transform.localPosition = new Vector3(-MAX_X * 3/ 4, 0.1f, MAX_Y);
+                    players[1].Characters[0].transform.localPosition = new Vector3(0, 0.1f, MAX_Y);
+                    players[2].Characters[0].transform.localPosition = new Vector3(MAX_X * 3/ 4, 0.1f, MAX_Y);
+                    players[3].Characters[0].transform.localPosition = new Vector3(-MAX_X * 3 / 4, 0.1f, -MAX_Y);
+                    players[4].Characters[0].transform.localPosition = new Vector3(0, 0.1f, -MAX_Y);
+                    players[5].Characters[0].transform.localPosition = new Vector3(MAX_X * 3 / 4, 0.1f, -MAX_Y);
                     break;
                 }
             case 7:
                 {
-                    players[0].transform.SetParent(this.transform, false);
-                    players[0].transform.localPosition = new Vector3(-711, 325f, 0);
-                    players[1].transform.SetParent(this.transform, false);
-                    players[1].transform.localPosition = new Vector3(-237, 325f, 0);
-                    players[2].transform.SetParent(this.transform, false);
-                    players[2].transform.localPosition = new Vector3(237, 325f, 0);
-                    players[3].transform.SetParent(this.transform, false);
-                    players[3].transform.localPosition = new Vector3(711, 325f, 0);
-                    players[4].transform.SetParent(this.transform, false);
-                    players[4].transform.localPosition = new Vector3(-474, -325f, 0);
-                    players[5].transform.SetParent(this.transform, false);
-                    players[5].transform.localPosition = new Vector3(0, -325f, 0);
-                    players[6].transform.SetParent(this.transform, false);
-                    players[6].transform.localPosition = new Vector3(474, -325f, 0);
+                    players[0].Characters[0].transform.localPosition = new Vector3(-MAX_X * 4 / 5, 0.1f, MAX_Y);
+                    players[1].Characters[0].transform.localPosition = new Vector3(-MAX_X * 4 / 15, 0.1f, MAX_Y);
+                    players[2].Characters[0].transform.localPosition = new Vector3(MAX_X * 4 / 15, 0.1f, MAX_Y);
+                    players[3].Characters[0].transform.localPosition = new Vector3(MAX_X * 4 / 5, 0.1f, MAX_Y);
+                    players[4].Characters[0].transform.localPosition = new Vector3(-MAX_X * 3 / 4, 0.1f, -MAX_Y);
+                    players[5].Characters[0].transform.localPosition = new Vector3(0, 0.1f, -MAX_Y);
+                    players[6].Characters[0].transform.localPosition = new Vector3(MAX_X * 3 / 4, 0.1f, -MAX_Y);
                     break;
                 }
             case 8:
                 {
-                    players[0].transform.SetParent(this.transform, false);
-                    players[0].transform.localPosition = new Vector3(-711, 325f, 0);
-                    players[1].transform.SetParent(this.transform, false);
-                    players[1].transform.localPosition = new Vector3(-237, 325f, 0);
-                    players[2].transform.SetParent(this.transform, false);
-                    players[2].transform.localPosition = new Vector3(237, 325f, 0);
-                    players[3].transform.SetParent(this.transform, false);
-                    players[3].transform.localPosition = new Vector3(711, 325f, 0);
-                    players[4].transform.SetParent(this.transform, false);
-                    players[4].transform.localPosition = new Vector3(-711, -325f, 0);
-                    players[5].transform.SetParent(this.transform, false);
-                    players[5].transform.localPosition = new Vector3(-237, -325f, 0);
-                    players[6].transform.SetParent(this.transform, false);
-                    players[6].transform.localPosition = new Vector3(237, -325f, 0);
-                    players[7].transform.SetParent(this.transform, false);
-                    players[7].transform.localPosition = new Vector3(711, -325f, 0);
+                    players[0].Characters[0].transform.localPosition = new Vector3(-MAX_X * 4 / 5, 0.1f, MAX_Y);
+                    players[1].Characters[0].transform.localPosition = new Vector3(-MAX_X * 4 / 15, 0.1f, MAX_Y);
+                    players[2].Characters[0].transform.localPosition = new Vector3(MAX_X * 4 / 15, 0.1f, MAX_Y);
+                    players[3].Characters[0].transform.localPosition = new Vector3(MAX_X * 4 / 5, 0.1f, MAX_Y);
+                    players[4].Characters[0].transform.localPosition = new Vector3(-MAX_X * 4 / 5, 0.1f, -MAX_Y);
+                    players[5].Characters[0].transform.localPosition = new Vector3(-MAX_X * 4 / 15, 0.1f, -MAX_Y);
+                    players[6].Characters[0].transform.localPosition = new Vector3(MAX_X * 4 / 15, 0.1f, -MAX_Y);
+                    players[7].Characters[0].transform.localPosition = new Vector3(MAX_X * 4 / 5, 0.1f, -MAX_Y);
                     break;
                 }
         }
-    }*/
 
-    /*private void StartGame()
+        foreach(Player player in players) player.transform.localPosition = GetUIPosition(player);
+    }
+
+    private void StartGame()
     {
-        foreach (GameObject pl in players)
+        foreach (Player pl in players)
         {
-            //Debug.Log("Player lifes: " + pl.GetComponent<Player>().Lifes);
-            for (int i = 0; i < pl.GetComponent<Player>().Lifes; i++)
+            for (int i = 0; i < pl.Lifes; i++)
             {
-                pl.GetComponent<Player>().DrawCard(cardDeck[0].GetComponent<Card>());
-                cardDeck[0].transform.SetParent(pl.transform, false);
-                cardDeck[0].transform.localPosition = new Vector3(25 * i, 98, 0);
-                cardDeck[0].GetComponent<Card>().FlipCard();
+                pl.DrawCard(cardDeck[0]);
+                cardDeck[0].transform.localPosition = new Vector3(
+                    pl.Characters[0].transform.localPosition.x - 5 + i * 2.5f,
+                    0,
+                    pl.Characters[0].transform.localPosition.z > 0 ? players[0].Characters[0].transform.localPosition.z - 21 : -players[0].Characters[0].transform.localPosition.z + 21);
+
                 cardDeck.RemoveAt(0);
             }
         }
-    }*/
+    }
 
     private RaycastHit CastRay()
     {
@@ -686,5 +667,13 @@ public class Game : MonoBehaviour
         Physics.Raycast(worldMousePositionNear, worldMousePositionFar - worldMousePositionNear, out hit);
 
         return hit;
+    }
+
+    private Vector2 GetUIPosition(Player player)
+    {
+        Vector2 canvasPos;
+        Vector2 screenPoint = GameCamera.WorldToScreenPoint(player.Characters[0].transform.position);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(Canvas.instance.GetComponent<RectTransform>(), screenPoint, null, out canvasPos);
+        return canvasPos;
     }
 }
