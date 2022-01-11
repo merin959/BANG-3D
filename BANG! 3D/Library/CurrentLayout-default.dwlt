@@ -21,7 +21,7 @@ MonoBehaviour:
   m_ShowMode: 4
   m_Title: Hierarchy
   m_RootView: {fileID: 6}
-  m_MinSize: {x: 875, y: 300}
+  m_MinSize: {x: 875, y: 542}
   m_MaxSize: {x: 10000, y: 10000}
   m_Maximized: 1
 --- !u!114 &2
@@ -48,7 +48,7 @@ MonoBehaviour:
   m_MinSize: {x: 679, y: 492}
   m_MaxSize: {x: 14002, y: 14042}
   vertical: 0
-  controlID: 90
+  controlID: 117
 --- !u!114 &3
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -223,7 +223,7 @@ MonoBehaviour:
   m_MinSize: {x: 403, y: 492}
   m_MaxSize: {x: 10001, y: 14042}
   vertical: 1
-  controlID: 18
+  controlID: 89
 --- !u!114 &10
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -248,7 +248,7 @@ MonoBehaviour:
   m_MinSize: {x: 403, y: 221}
   m_MaxSize: {x: 8003, y: 4021}
   vertical: 0
-  controlID: 19
+  controlID: 90
 --- !u!114 &11
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -314,13 +314,13 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 1
     m_Folders:
-    - Assets/Scenes
+    - Assets/Scripts
     m_Globs: []
     m_OriginalText: 
   m_ViewMode: 1
   m_StartGridSize: 64
   m_LastFolders:
-  - Assets/Scenes
+  - Assets/Scripts
   m_LastFoldersGridSize: -1
   m_LastProjectPath: "D:\\School\\Ro\u010Dn\xEDkovka - BANG! 21-22\\App (3D)\\BANG\\BANG!
     3D"
@@ -328,9 +328,9 @@ MonoBehaviour:
     m_IsLocked: 0
   m_FolderTreeState:
     scrollPos: {x: 0, y: 0}
-    m_SelectedIDs: 6a580000
-    m_LastClickedID: 22634
-    m_ExpandedIDs: 00000000485300004a5300004c5300004e530000525300005453000056530000585300005a5300005c5300005e53000068580000326b00003c6b000000ca9a3b
+    m_SelectedIDs: 6a530000
+    m_LastClickedID: 21354
+    m_ExpandedIDs: 000000003a5300003c5300003e53000040530000425300004453000046530000485300004a5300004c5300004e53000050530000525300005453000000ca9a3b
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -358,7 +358,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 
     m_LastClickedID: 0
-    m_ExpandedIDs: 00000000485300004a5300004c5300004e53000050530000525300005453000056530000585300005a5300005c5300005e53000060530000
+    m_ExpandedIDs: 000000003a5300003c5300003e53000040530000425300004453000046530000485300004a5300004c5300004e530000505300005253000054530000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -402,7 +402,7 @@ MonoBehaviour:
       m_IsRenaming: 0
       m_OriginalEventType: 11
       m_IsRenamingFilename: 1
-      m_ClientGUIView: {fileID: 0}
+      m_ClientGUIView: {fileID: 5}
     m_CreateAssetUtility:
       m_EndAction: {fileID: 0}
       m_InstanceID: 0
@@ -482,21 +482,21 @@ MonoBehaviour:
       scrollPos: {x: 0, y: 0}
       m_SelectedIDs: 
       m_LastClickedID: 0
-      m_ExpandedIDs: 0a3bf3ff483bf3ff563cf3ff1c3df3ff0406f6ff0a08f6ff7c6ff7ff1ec5f7fff62ff8ff56e4f8ff94e4f8ffa2e5f8ff68e6f8ff8875faff1ebffaff7c13fbff247afbfffadffbff54fbffff6e5200007c5200008c52000092520000527e00005c7e0000847e0000947e00009a7e0000288c0000328c00004c8c00006a8c0000708c0000
+      m_ExpandedIDs: 0698e0ff4498e0ff5299e0ff189ae0ffe079e8ffe635f1ffc073feff408afeff54fbffff5852000072520000805200009052000096520000
       m_RenameOverlay:
         m_UserAcceptedRename: 0
-        m_Name: Tooltip
-        m_OriginalName: Tooltip
+        m_Name: 
+        m_OriginalName: 
         m_EditFieldRect:
           serializedVersion: 2
           x: 0
           y: 0
           width: 0
           height: 0
-        m_UserData: 35916
+        m_UserData: 0
         m_IsWaitingForDelay: 0
         m_IsRenaming: 0
-        m_OriginalEventType: 4
+        m_OriginalEventType: 11
         m_IsRenamingFilename: 0
         m_ClientGUIView: {fileID: 4}
       m_SearchString: 
@@ -542,9 +542,9 @@ MonoBehaviour:
   m_PlayAudio: 0
   m_AudioPlay: 0
   m_Position:
-    m_Target: {x: 142.67178, y: -232.4492, z: 290.7466}
+    m_Target: {x: 419.32556, y: -67.23284, z: 14.146178}
     speed: 2
-    m_Value: {x: 142.67178, y: -232.4492, z: 290.7466}
+    m_Value: {x: 419.32556, y: -67.23284, z: 14.146178}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -591,13 +591,13 @@ MonoBehaviour:
     m_GridAxis: 1
     m_gridOpacity: 0.5
   m_Rotation:
-    m_Target: {x: 0.24652596, y: -0.24922936, z: 0.06576692, w: 0.9342302}
+    m_Target: {x: 0.44432765, y: 0.01639097, z: -0.0081281755, w: 0.89569104}
     speed: 2
-    m_Value: {x: 0.24652575, y: -0.24922915, z: 0.06576687, w: 0.93422943}
+    m_Value: {x: 0.4443223, y: 0.016390773, z: -0.008128078, w: 0.89568025}
   m_Size:
-    m_Target: 195.82593
+    m_Target: 21.985828
     speed: 2
-    m_Value: 195.82593
+    m_Value: 21.985828
   m_Ortho:
     m_Target: 0
     speed: 2

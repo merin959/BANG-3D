@@ -6,6 +6,8 @@ using UnityEngine.UI;
 
 public class Game : MonoBehaviour
 {
+    public static Game instance;
+
     public GameObject Card;
     public GameObject GameArea;
     public GameObject Player;
@@ -14,25 +16,37 @@ public class Game : MonoBehaviour
 
     private Card dragAndDropObject;
     private Vector3 ddObjectPosition;
+    private Quaternion ddObjectRotation;
 
     private Card tooltipObject;
 
-    private List<Player> players = new List<Player>();
-    private List<Card> cardDeck = new List<Card>();      // 164
-    private List<Card> highNoonDeck = new List<Card>();  // 13
-    private List<Card> fistfulDeck = new List<Card>();   // 15
-    private List<Card> wildWestDeck = new List<Card>();  // 10
-    private List<Card> lootDeck = new List<Card>();      // 24
-    private List<Card> characterDeck = new List<Card>(); // 63
-    private List<Card> roleDeck = new List<Card>();      // 9 (-1 - Shadow Renegate)
-    private List<Card> gameRoleDeck = new List<Card>();
+    private Player activePlayer;
+    private Player sheriff;
+
+    public List<Player> players = new List<Player>();
+    public List<Card> cardDeck = new List<Card>();      // 164
+    public List<Card> discardDeck = new List<Card>();
+    public List<Card> highNoonDeck = new List<Card>();  // 13
+    public List<Card> fistfulDeck = new List<Card>();   // 15
+    public List<Card> wildWestDeck = new List<Card>();  // 10
+    public List<Card> lootDeck = new List<Card>();      // 24
+    public List<Card> characterDeck = new List<Card>(); // 63
+    public List<Card> roleDeck = new List<Card>();      // 9 (-1 - Shadow Renegate)
+    public List<Card> gameRoleDeck = new List<Card>();
 
     private float MAX_X = 97;
     private float MAX_Y = 50;
 
+    private float MAX_X_IN_PLAY = 17.4f;
+    private float MAX_Z_IN_PLAY = 28.5f;
+
+    private int turnNumber;
+
     private void Start()
     {
+        instance = this;
         Screen.fullScreen = true;
+        TurnManager.instance.EndTurn += OnEndTurn;
         CreateDecks();
         CreatePlayers(8);
         StartGame();
@@ -40,81 +54,7 @@ public class Game : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0))
-        {
-            if (dragAndDropObject == null)
-            {
-                Tooltip.instance.HideTooltip();
-                tooltipObject = null;
-                RaycastHit hit = CastRay();
-
-                if(hit.collider != null)
-                {
-                    if (!hit.collider.CompareTag("Drag")) return;
-
-                    dragAndDropObject = hit.collider.gameObject.GetComponent<Card>();
-                    if (dragAndDropObject.IsFlipped)
-                    {
-                        ddObjectPosition = dragAndDropObject.transform.position;
-                        //Cursor.visible = false;
-                    }
-                    else dragAndDropObject = null;
-                }
-            }
-            else
-            {
-                Vector3 worldPosition = GameCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, GameCamera.WorldToScreenPoint(dragAndDropObject.transform.position).z));
-
-                //this below will change for each card type
-                if ((dragAndDropObject.transform.position.x < 391.3f && dragAndDropObject.transform.position.x > 384.3f) && (dragAndDropObject.transform.position.z < 2.6f && dragAndDropObject.transform.position.z > -9.2))
-                    dragAndDropObject.transform.localPosition = new Vector3(10, 0, 0);
-                else
-                    dragAndDropObject.transform.position = ddObjectPosition;
-
-                dragAndDropObject = null;
-                Cursor.visible = true;
-            }
-        }
-
-        if(dragAndDropObject != null)
-        {
-            Vector3 worldPosition = GameCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, GameCamera.WorldToScreenPoint(dragAndDropObject.transform.position).z));
-            dragAndDropObject.transform.position = new Vector3(worldPosition.x, -10f, worldPosition.z);
-        }
-
-        if (Input.GetMouseButtonDown(1))
-        {
-            if (dragAndDropObject != null) return;
-            if (tooltipObject == null)
-            {
-                RaycastHit hit = CastRay();
-
-                if (hit.collider != null)
-                {
-                    if (!hit.collider.CompareTag("Drag")) return;
-
-                    tooltipObject = hit.collider.gameObject.GetComponent<Card>();
-                    if(tooltipObject.IsFlipped) Tooltip.instance.ShowTooltip(tooltipObject.TooltipData);
-                }
-            }
-            else
-            {
-                Tooltip.instance.HideTooltip();
-
-                tooltipObject = null;
-            }
-        }
-
-        if (tooltipObject != null)
-        {
-            RaycastHit hit = CastRay();
-            try { var x = hit.collider.name; }
-            catch
-            {
-                Tooltip.instance.HideTooltip();
-                tooltipObject = null;
-            }
-        }
+        HandleClick();
     }
   
     private void CreateDecks()
@@ -433,7 +373,7 @@ public class Game : MonoBehaviour
         for (int j = 65; j <= 95; j += 15)
         {
             lootDeck[0].transform.localPosition = new Vector3(j, 0, 0);
-            lootDeck[0].GetComponent<Card>().FlipCard();
+            lootDeck[0].FlipCard();
             lootDeck.RemoveAt(0);
         }
     }
@@ -449,7 +389,7 @@ public class Game : MonoBehaviour
         characterDeck[6].SetUpCharacterCard(5, "Kit Carlson", "Textures/Vanilla/Characters/Kit Carlson", "In phase 1, he looks on top three cards of the deck and chooses two to draw and discards the other one.", 4);
         characterDeck[7].SetUpCharacterCard(5, "Lucky Duke", "Textures/Vanilla/Characters/Lucky Duke", "Each time he tests, he flips the top two cards a chooses one.", 4);
         characterDeck[8].SetUpCharacterCard(5, "Paul Regret", "Textures/Vanilla/Characters/Paul Regret", "All others see him with +1 distance.", 3);
-        characterDeck[9].SetUpCharacterCard(5, "Pedro Ramirez", "Textures/Vanilla/Characters/Pedro Ramirez", "In phase 1, he may draw his first card frin the discard pile.", 4);
+        characterDeck[9].SetUpCharacterCard(5, "Pedro Ramirez", "Textures/Vanilla/Characters/Pedro Ramirez", "In phase 1, he may draw his first card from the discard pile.", 4);
         characterDeck[10].SetUpCharacterCard(5, "Rose Doolan", "Textures/Vanilla/Characters/Rose Doolan", "She sees all players with -1 distance.", 4);
         characterDeck[11].SetUpCharacterCard(5, "Sid Ketchum", "Textures/Vanilla/Characters/Sid Ketchum", "He may discard two cards to restore 1 life.", 4);
         characterDeck[12].SetUpCharacterCard(5, "Slab the Killer", "Textures/Vanilla/Characters/Slab the Killer", "Players need 2 Missed! effects to cancel his BANG!.", 4);
@@ -581,17 +521,6 @@ public class Game : MonoBehaviour
                     players[1].Characters[0].transform.localPosition = new Vector3(MAX_X / 2, 0.1f, MAX_Y);
                     players[2].Characters[0].transform.localPosition = new Vector3(-MAX_X / 2, 0.1f, -MAX_Y);
                     players[3].Characters[0].transform.localPosition = new Vector3(MAX_X / 2, 0.1f, -MAX_Y);
-
-                    /*Vector2 canvasPos;
-                    Vector2 screenPoint = GameCamera.WorldToScreenPoint(players[0].Characters[0].transform.position);
-                    RectTransformUtility.ScreenPointToLocalPointInRectangle(Canvas.instance.GetComponent<RectTransform>(), screenPoint, null, out canvasPos);
-                    Debug.Log(canvasPos);
-
-
-                    players[0].transform.localPosition = canvasPos;// new Vector3(-434f, 417.5f, 0);
-                    players[1].transform.localPosition = new Vector3(434f, 417.5f, 0);
-                    players[2].transform.localPosition = new Vector3(-434f, -417.5f, 0);
-                    players[3].transform.localPosition = new Vector3(434f, -417.5f, 0);*/
                     break;
                 }
             case 5:
@@ -645,17 +574,19 @@ public class Game : MonoBehaviour
     {
         foreach (Player pl in players)
         {
-            for (int i = 0; i < pl.Lifes; i++)
+            for (int i = 0; i < pl.MaximumCardsInHand; i++)
             {
                 pl.DrawCard(cardDeck[0]);
-                cardDeck[0].transform.localPosition = new Vector3(
-                    pl.Characters[0].transform.localPosition.x - 5 + i * 2.5f,
-                    0,
-                    pl.Characters[0].transform.localPosition.z > 0 ? players[0].Characters[0].transform.localPosition.z - 21 : -players[0].Characters[0].transform.localPosition.z + 21);
-
                 cardDeck.RemoveAt(0);
             }
+            pl.SetUpCardsInHand();
+            foreach (Card c in pl.CardsInHand) c.FlipCard();
+
         }
+        foreach (Player pl in players) if (pl.Role.CardName == "Sheriff") { sheriff = pl; break; }
+        activePlayer = sheriff;
+        turnNumber = 1;
+        TurnManager.instance.DoTurn(activePlayer);
     }
 
     private RaycastHit CastRay()
@@ -675,5 +606,132 @@ public class Game : MonoBehaviour
         Vector2 screenPoint = GameCamera.WorldToScreenPoint(player.Characters[0].transform.position);
         RectTransformUtility.ScreenPointToLocalPointInRectangle(Canvas.instance.GetComponent<RectTransform>(), screenPoint, null, out canvasPos);
         return canvasPos;
+    }
+
+    private void HandleClick()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            if (dragAndDropObject == null)
+            {
+                Tooltip.instance.HideTooltip();
+                tooltipObject = null;
+                RaycastHit hit = CastRay();
+
+                if (hit.collider != null)
+                {
+                    if (!hit.collider.CompareTag("Drag")) return;
+
+                    dragAndDropObject = hit.collider.gameObject.GetComponent<Card>();
+                    if (dragAndDropObject.CanBeMoved && (activePlayer.CardsInHand.Contains(dragAndDropObject) || activePlayer.CardsInPlay.Contains(dragAndDropObject)))
+                    {
+                        if (dragAndDropObject.IsFlipped) { ddObjectPosition = dragAndDropObject.transform.position; ddObjectRotation = dragAndDropObject.transform.rotation; dragAndDropObject.transform.eulerAngles = new Vector3(0, 0, 0); dragAndDropObject.enabled = false; }
+                        else dragAndDropObject = null;
+                    }
+                    else dragAndDropObject = null;
+                }
+            }
+            else
+            {
+                dragAndDropObject.transform.position = new Vector3(dragAndDropObject.transform.position.x, dragAndDropObject.transform.position.y - 48, dragAndDropObject.transform.position.z);
+                Vector3 worldPosition = GameCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, GameCamera.WorldToScreenPoint(dragAndDropObject.transform.position).z));
+                if ((dragAndDropObject.transform.localPosition.x < 11 && dragAndDropObject.transform.localPosition.x > 4) &&
+                    (dragAndDropObject.transform.localPosition.z < 6 && dragAndDropObject.transform.localPosition.z > -6) &&
+                    dragAndDropObject.EligibleDestination == "Discard deck")
+                {
+                    dragAndDropObject.transform.localPosition = new Vector3(10, discardDeck.Count * 0.02f, 0);
+                    discardDeck.Add(dragAndDropObject);
+                    activePlayer.RemoveCardFromHand(dragAndDropObject);
+                }
+                else if((dragAndDropObject.transform.localPosition.x < activePlayer.Characters[0].transform.localPosition.x + MAX_X_IN_PLAY && dragAndDropObject.transform.localPosition.x > activePlayer.Characters[0].transform.localPosition.x - MAX_X_IN_PLAY) &&
+                    (activePlayer.IsTopOrBottom ? dragAndDropObject.transform.localPosition.z < MAX_Z_IN_PLAY && dragAndDropObject.transform.localPosition.z > MAX_Z_IN_PLAY - 16 : dragAndDropObject.transform.localPosition.z > -MAX_Z_IN_PLAY && dragAndDropObject.transform.localPosition.z < MAX_Z_IN_PLAY + 16) &&
+                    dragAndDropObject.EligibleDestination == "In front of a player")
+                {
+                    discardDeck.Add(dragAndDropObject);
+                    activePlayer.AddCardToPlay(dragAndDropObject);
+                    activePlayer.RemoveCardFromHand(dragAndDropObject);
+                }
+                else
+                {
+                    dragAndDropObject.transform.position = ddObjectPosition;
+                    dragAndDropObject.transform.rotation = ddObjectRotation;
+                }
+
+                dragAndDropObject = null;
+            }
+        }
+
+        if (dragAndDropObject != null)
+        {
+            Vector3 worldPosition = GameCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, GameCamera.WorldToScreenPoint(dragAndDropObject.transform.position).z));
+            dragAndDropObject.transform.position = new Vector3(worldPosition.x, -50, worldPosition.z); 
+        }
+
+        if (Input.GetMouseButtonDown(1))
+        {
+            if (dragAndDropObject != null) return;
+            if (tooltipObject == null)
+            {
+                RaycastHit hit = CastRay();
+
+                if (hit.collider != null)
+                {
+                    if (!hit.collider.CompareTag("Drag")) return;
+
+                    tooltipObject = hit.collider.gameObject.GetComponent<Card>();
+                    if (tooltipObject.IsFlipped) Tooltip.instance.ShowTooltip(tooltipObject.TooltipData);
+                }
+            }
+            else
+            {
+                Tooltip.instance.HideTooltip();
+
+                tooltipObject = null;
+            }
+        }
+
+        if (tooltipObject != null)
+        {
+            RaycastHit hit = CastRay();
+            try { var x = hit.collider.name; }
+            catch
+            {
+                Tooltip.instance.HideTooltip();
+                tooltipObject = null;
+            }
+        }
+    }
+
+    private void OnEndTurn(Player player)
+    {
+        try
+        {
+            activePlayer = players[players.FindIndex(a => a.Equals(activePlayer)) + 1];
+        }
+        catch
+        {
+            activePlayer = players[0];
+        }
+        if (activePlayer.Role.CardName == "Sheriff")
+        {
+            turnNumber++;
+            FlipEffectCards(highNoonDeck);
+            FlipEffectCards(fistfulDeck);
+            FlipEffectCards(wildWestDeck);
+        }
+        TurnManager.instance.DoTurn(activePlayer);
+    }
+
+    private void FlipEffectCards(List<Card> deck)
+    {
+        if(deck.Count > 1)
+        {
+            if (turnNumber > 2)
+            {
+                deck[0].transform.localPosition = new Vector3(0, -5, 0);
+                deck.RemoveAt(0);
+            }
+            deck[0].FlipCard();
+        }
     }
 }

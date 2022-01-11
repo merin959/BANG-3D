@@ -29,6 +29,11 @@ public class Card : MonoBehaviour
     public int CharacterCardLives { get { return characterCardLives; } }
     private bool isFlipped;
     public bool IsFlipped { get { return isFlipped; } }
+    private bool canBeMoved;
+    public bool CanBeMoved { get { return canBeMoved; } set { canBeMoved = value; } }
+
+    private string eligibleDestination;
+    public string EligibleDestination { get { return eligibleDestination; } set { eligibleDestination = value; } }
 
     public string TooltipData { get { return cardName + (cardType == 0 ? " (" + playingCardValue + playingCardColor + ")" : "") + "\n" + cardDescription; } }
 
@@ -43,10 +48,12 @@ public class Card : MonoBehaviour
     {
         isFlipped = true;
         this.cardType = cardType;
+        CanBeMoved = false;
         switch (cardType)
         {
             case 0:
                 {
+                    CanBeMoved = true;
                     cardBack = Resources.Load<Sprite>("Textures/Card backs/Playing Card Background");
                     break;
                 }
@@ -93,6 +100,8 @@ public class Card : MonoBehaviour
         this.playingCardValue = playingCardValue;
         this.playingCardColor = playingCardColor;
         this.playingCardType = playingCardType;
+        if (playingCardType == 0) eligibleDestination = "Discard deck";
+        else eligibleDestination = "In front of a player";
     }
 
     public void SetUpLootCard(int cardType, string cardName, string cardPath, string cardDescription, int lootCardCost, int lootCardType)
