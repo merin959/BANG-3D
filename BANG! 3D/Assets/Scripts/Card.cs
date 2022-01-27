@@ -8,6 +8,7 @@ using UnityEngine.UI;
 public class Card : MonoBehaviour
 {
     private int cardType;             // 0 = playing card, 1 = High Noon card, 2 = Fistful card, 3 = Wild West card, 4 = Gold Rush loot card, 5 = character card, 6 = role card
+    public int CardType { get { return cardType; } }
     private string cardName;
     public string CardName { get { return cardName; } }
     private Sprite cardImage;

@@ -19,6 +19,7 @@ public class Player : MonoBehaviour
         set { role = value; }
     }
     private Card mainCharacter;
+    public Card MainCharacter { get { return mainCharacter; } }
     private Card secondaryCharacter;
     private List<Card> cardsInHand;
     public List<Card> CardsInHand { get { return cardsInHand; } }

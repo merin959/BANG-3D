@@ -29,11 +29,11 @@ public class TurnManager : MonoBehaviour
             activePlayer.DrawCard(c);
             Game.instance.cardDeck.RemoveAt(0);
         }
-        activePlayer.FixCardAngles();
+        /*activePlayer.FixCardAngles();
         Card cc = Game.instance.cardDeck[0];
         cc.FlipCard();
         activePlayer.DrawCard(cc);
-        Game.instance.cardDeck.RemoveAt(0);
+        Game.instance.cardDeck.RemoveAt(0);*/
         //activePlayer.FixCardAngles();
     }
     private void DoPhase2(Player activePlayer)

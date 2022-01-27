@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="CameraIdleRotation">
+    <Position X="0.5" Y="0.5" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAACAAAAAAAAAAAAAAACAAAAAAAAgAAAAAAAA=</HashCode>
+      <FileName>Assets\Scripts\CameraIdleRotation.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Canvas">
+    <Position X="3.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAEA=</HashCode>
+      <FileName>Assets\Scripts\Canvas.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Card">
+    <Position X="17.75" Y="0.5" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAxECgFBAFACQBBAIgAISgAABAEIAAAAAAJABAAIlAQ=</HashCode>
+      <FileName>Assets\Scripts\Card.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Game">
+    <Position X="10.5" Y="0.5" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>hgxARAAAACAYgIIQAAACCAAhQGBAgWAAolsAAYABEIA=</HashCode>
+      <FileName>Assets\Scripts\Game.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Player">
+    <Position X="13.75" Y="0.5" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>IAAACQAAACAIAABgEAmBCBAgkAoAgAADAQAAESAAAEA=</HashCode>
+      <FileName>Assets\Scripts\Player.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SceneManager">
+    <Position X="0.5" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAgA=</HashCode>
+      <FileName>Assets\Scripts\SceneManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Tooltip">
+    <Position X="0.5" Y="3" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAIQIAAABAAAAAAAAAAAAAgBAAAAAAAAAAAAAAEA=</HashCode>
+      <FileName>Assets\Scripts\Tooltip.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TurnManager">
+    <Position X="8" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAECAAAAAAAAAFAAAAAABAAAAAEACAAAAAAAA=</HashCode>
+      <FileName>Assets\Scripts\TurnManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
