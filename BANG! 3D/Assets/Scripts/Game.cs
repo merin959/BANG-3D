@@ -65,12 +65,6 @@ public class Game : MonoBehaviour
         if(i==200)
         {
             iIncreaser = false;
-            i++;
-            foreach (Player pl in players) if (pl.Role.CardName == "Sheriff") { sheriff = pl; break; }
-            activePlayer = sheriff;
-            foreach(Card c in activePlayer.CardsInHand) c.FlipCard();
-            turnNumber = 1;
-            TurnManager.instance.DoTurn(activePlayer);
         }
         HandleClick();
     }
@@ -600,11 +594,11 @@ public class Game : MonoBehaviour
             pl.SetUpCardsInHand();
 
         }
-        /*foreach (Player pl in players) if (pl.Role.CardName == "Sheriff") { sheriff = pl; break; }
+        foreach (Player pl in players) if (pl.Role.CardName == "Sheriff") { sheriff = pl; break; }
         activePlayer = sheriff;
-        foreach(Card c in activePlayer.CardsInHand) c.FlipCard();
+        foreach (Card c in activePlayer.CardsInHand) c.FlipCard();
         turnNumber = 1;
-        TurnManager.instance.DoTurn(activePlayer);*/
+        TurnManager.instance.DoTurn(activePlayer);
     }
 
     internal RaycastHit CastRay()

@@ -34,6 +34,7 @@ public class Card : MonoBehaviour
     public bool CanBeMoved { get { return canBeMoved; } set { canBeMoved = value; } }
 
     private string eligibleDestination;
+
     public string EligibleDestination { get { return eligibleDestination; } set { eligibleDestination = value; } }
 
     public string TooltipData { get { return cardName + (cardType == 0 ? " (" + playingCardValue + playingCardColor + ")" : "") + "\n" + cardDescription; } }
