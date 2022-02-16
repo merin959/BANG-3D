@@ -10,7 +10,16 @@ public class Player : MonoBehaviour
 {
     private string playerName;
     private int lifes;
-    public int Lifes { get { return lifes; } }
+    public int Lifes
+    {
+        get { return lifes; }
+        set
+        {
+            lifes = value;
+            //vyøešit vedle atd...
+            transform.Find("NumberOfLives").GetComponent<Text>().text = lifes + "";
+        }
+    }
     public int MaximumCardsInHand { get { return (mainCharacter.CardName == "Big Spencer" && lifes > 5) ? 5 : lifes; } }
     private Card role;
     public Card Role
@@ -19,6 +28,7 @@ public class Player : MonoBehaviour
         set { role = value; }
     }
     private Card mainCharacter;
+    public Card MainCharacter { get { return mainCharacter; } }
     private Card secondaryCharacter;
     private List<Card> cardsInHand;
     public List<Card> CardsInHand { get { return cardsInHand; } }

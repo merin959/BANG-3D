@@ -10,6 +10,7 @@ public class TurnManager : MonoBehaviour
     void Start()
     {
         instance = this;
+        TargetingSystem.instance.ReturnTargetedCard += OnReturnTargettedCard;
     }
 
     internal void DoTurn(Player activePlayer)
@@ -29,13 +30,14 @@ public class TurnManager : MonoBehaviour
             activePlayer.DrawCard(c);
             Game.instance.cardDeck.RemoveAt(0);
         }
-        activePlayer.FixCardAngles();
+        /*activePlayer.FixCardAngles();
         Card cc = Game.instance.cardDeck[0];
         cc.FlipCard();
         activePlayer.DrawCard(cc);
-        Game.instance.cardDeck.RemoveAt(0);
+        Game.instance.cardDeck.RemoveAt(0);*/
         //activePlayer.FixCardAngles();
     }
+
     private void DoPhase2(Player activePlayer)
     {
 
@@ -43,5 +45,13 @@ public class TurnManager : MonoBehaviour
     private void DoPhase3(Player activePlayer)
     {
 
+    }
+
+
+    private void OnReturnTargettedCard(Player targetedPlayer)
+    {
+        TargetingSystem.instance.HideTarget();
+        //tohle se zmìní po implementaci multiplayeru, tohle je kvùli testování multiplayeri
+        targetedPlayer.Lifes--;
     }
 }

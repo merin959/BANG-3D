@@ -20,7 +20,7 @@ public class Game : MonoBehaviour
 
     private Card tooltipObject;
 
-    private Player activePlayer;
+    internal Player activePlayer;
     private Player sheriff;
 
     public List<Player> players = new List<Player>();
@@ -41,19 +41,31 @@ public class Game : MonoBehaviour
     private float MAX_Z_IN_PLAY = 28.5f;
 
     private int turnNumber;
+    int i;
+    bool iIncreaser;
 
     private void Start()
     {
+        i = 0;
+        iIncreaser = true;
         instance = this;
         Screen.fullScreen = true;
         TurnManager.instance.EndTurn += OnEndTurn;
-        CreateDecks();
-        CreatePlayers(8);
-        StartGame();
+        //CreateDecks();
+        //CreatePlayers(8);
+        //StartGame();
     }
 
     private void Update()
     {
+        if(iIncreaser) i++;
+        if(i==50) CreateDecks();
+        if(i==100) CreatePlayers(8);
+        if(i==150) StartGame();
+        if(i==200)
+        {
+            iIncreaser = false;
+        }
         HandleClick();
     }
   
@@ -580,16 +592,16 @@ public class Game : MonoBehaviour
                 cardDeck.RemoveAt(0);
             }
             pl.SetUpCardsInHand();
-            foreach (Card c in pl.CardsInHand) c.FlipCard();
 
         }
         foreach (Player pl in players) if (pl.Role.CardName == "Sheriff") { sheriff = pl; break; }
         activePlayer = sheriff;
+        foreach (Card c in activePlayer.CardsInHand) c.FlipCard();
         turnNumber = 1;
         TurnManager.instance.DoTurn(activePlayer);
     }
 
-    private RaycastHit CastRay()
+    internal RaycastHit CastRay()
     {
         Vector3 worldMousePositionFar = GameCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, GameCamera.farClipPlane));
         Vector3 worldMousePositionNear = GameCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, GameCamera.nearClipPlane));
@@ -600,7 +612,7 @@ public class Game : MonoBehaviour
         return hit;
     }
 
-    private Vector2 GetUIPosition(Player player)
+    internal Vector2 GetUIPosition(Player player)
     {
         Vector2 canvasPos;
         Vector2 screenPoint = GameCamera.WorldToScreenPoint(player.Characters[0].transform.position);
@@ -635,13 +647,16 @@ public class Game : MonoBehaviour
             {
                 dragAndDropObject.transform.position = new Vector3(dragAndDropObject.transform.position.x, dragAndDropObject.transform.position.y - 48, dragAndDropObject.transform.position.z);
                 Vector3 worldPosition = GameCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, GameCamera.WorldToScreenPoint(dragAndDropObject.transform.position).z));
-                if ((dragAndDropObject.transform.localPosition.x < 11 && dragAndDropObject.transform.localPosition.x > 4) &&
-                    (dragAndDropObject.transform.localPosition.z < 6 && dragAndDropObject.transform.localPosition.z > -6) &&
+                if ((dragAndDropObject.transform.localPosition.x < 15 && dragAndDropObject.transform.localPosition.x > 5) &&
+                    (dragAndDropObject.transform.localPosition.z < 10 && dragAndDropObject.transform.localPosition.z > -10) &&
                     dragAndDropObject.EligibleDestination == "Discard deck")
                 {
                     dragAndDropObject.transform.localPosition = new Vector3(10, discardDeck.Count * 0.02f, 0);
                     discardDeck.Add(dragAndDropObject);
                     activePlayer.RemoveCardFromHand(dragAndDropObject);
+                    float x = new System.Random().Next(0, 3000) / 1000f - 1.5f;
+                    if (discardDeck.Count > 1) dragAndDropObject.transform.Rotate(new Vector3(0, x, 0));
+                    TargetingSystem.instance.ShowTarget();
                 }
                 else if((dragAndDropObject.transform.localPosition.x < activePlayer.Characters[0].transform.localPosition.x + MAX_X_IN_PLAY && dragAndDropObject.transform.localPosition.x > activePlayer.Characters[0].transform.localPosition.x - MAX_X_IN_PLAY) &&
                     (activePlayer.IsTopOrBottom ? dragAndDropObject.transform.localPosition.z < MAX_Z_IN_PLAY && dragAndDropObject.transform.localPosition.z > MAX_Z_IN_PLAY - 16 : dragAndDropObject.transform.localPosition.z > -MAX_Z_IN_PLAY && dragAndDropObject.transform.localPosition.z < MAX_Z_IN_PLAY + 16) &&
