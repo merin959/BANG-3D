@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Photon.Pun;
 
 public class Game : MonoBehaviour
 {
@@ -71,7 +72,9 @@ public class Game : MonoBehaviour
   
     private void CreateDecks()
     {
-        for (int i = 0; i < 164; i++) cardDeck.Add(Instantiate(Card).GetComponent<Card>());
+        //var x = PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity);
+        for (int i = 0; i < 164; i++) cardDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
+        //for (int i = 0; i < 164; i++) cardDeck.Add(Instantiate(Card).GetComponent<Card>());
         for (int i = 0; i < 12; i++) highNoonDeck.Add(Instantiate(Card).GetComponent<Card>());
         for (int i = 0; i < 14; i++) fistfulDeck.Add(Instantiate(Card).GetComponent<Card>());
         for (int i = 0; i < 9; i++) wildWestDeck.Add(Instantiate(Card).GetComponent<Card>());

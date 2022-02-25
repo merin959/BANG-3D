@@ -41,7 +41,6 @@ public class TargetingSystem : MonoBehaviour
 
     private void ProcessTargetting(Card targetedCard)
     {
-        Debug.Log(targetedCard.CardName);
         ReturnTargetedCard?.Invoke(GetPlayerFromCharacter(targetedCard));
     }
 
@@ -62,10 +61,7 @@ public class TargetingSystem : MonoBehaviour
 
     private Player GetPlayerFromCharacter(Card character)
     {
-        foreach(Player p in Game.instance.players)
-        {
-            if (p.MainCharacter.CardName == character.CardName) return p;
-        }
+        foreach(Player p in Game.instance.players) if (p.MainCharacter.CardName == character.CardName) return p;
         return null;
     }
 }

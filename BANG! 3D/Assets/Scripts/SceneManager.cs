@@ -9,7 +9,7 @@ public class SceneManager : MonoBehaviour
     {
         Screen.fullScreen = true;
     }
-    public void ChangeScene(int scene)
+    public void ChangeScene(string scene)
     {
         UnityEngine.SceneManagement.SceneManager.LoadScene(scene);
     }

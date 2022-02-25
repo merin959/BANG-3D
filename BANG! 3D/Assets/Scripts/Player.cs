@@ -5,9 +5,12 @@ using System.Linq;   //delete after real player names
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using Photon.Pun;
 
 public class Player : MonoBehaviour
 {
+    PhotonView view;
+
     private string playerName;
     private int lifes;
     public int Lifes
@@ -48,6 +51,11 @@ public class Player : MonoBehaviour
 
     private float MAX_X_IN_PLAY = 17.4f;
     private float MAX_Z_IN_PLAY = 28.5f;
+
+    private void Start()
+    {
+        view = GetComponent<PhotonView>();
+    }   
 
     public void SetUpPlayerInfo(Card mainCharacter, Card secondaryCharacter, Card role, bool isTopOrBottom)
     {

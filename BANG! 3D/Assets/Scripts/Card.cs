@@ -4,9 +4,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using Photon.Pun;
 
 public class Card : MonoBehaviour
 {
+    PhotonView view;
+
     private int cardType;             // 0 = playing card, 1 = High Noon card, 2 = Fistful card, 3 = Wild West card, 4 = Gold Rush loot card, 5 = character card, 6 = role card
     public int CardType { get { return cardType; } }
     private string cardName;
@@ -39,6 +42,10 @@ public class Card : MonoBehaviour
 
     public string TooltipData { get { return cardName + (cardType == 0 ? " (" + playingCardValue + playingCardColor + ")" : "") + "\n" + cardDescription; } }
 
+    private void Start()
+    {
+        view = GetComponent<PhotonView>();
+    }
 
     public void FlipCard()
     {
