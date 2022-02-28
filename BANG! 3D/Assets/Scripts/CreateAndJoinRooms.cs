@@ -11,16 +11,26 @@ public class CreateAndJoinRooms : MonoBehaviourPunCallbacks
 
     public void CreateRoom()
     {
-        PhotonNetwork.CreateRoom(createIpnut.text);
+        foreach(char ch in createIpnut.text)
+        {
+            if (!char.IsLetterOrDigit(ch)) return;
+        }
+        PhotonNetwork.CreateRoom(createIpnut.text.ToUpper());
     }
 
     public void JoinRoom()
     {
-        PhotonNetwork.JoinRoom(joinIpnut.text);
+        foreach (char ch in joinIpnut.text)
+        {
+            if (!char.IsLetterOrDigit(ch)) return;
+        }
+        PhotonNetwork.JoinRoom(joinIpnut.text.ToUpper());
     }
 
     public override void OnJoinedRoom()
     {
-        PhotonNetwork.LoadLevel("GameScene");
+        /*Debug.Log(PhotonNetwork.CurrentRoom.PlayerCount);
+        Debug.Log(PhotonNetwork.CurrentRoom.Name);*/
+        PhotonNetwork.LoadLevel("RoomScene");
     }
 }
