@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Photon.Pun;
+using Photon.Realtime;
 
 public class Game : MonoBehaviour
 {
@@ -50,7 +51,6 @@ public class Game : MonoBehaviour
         i = 0;
         iIncreaser = true;
         instance = this;
-        Screen.fullScreen = true;
         TurnManager.instance.EndTurn += OnEndTurn;
         //CreateDecks();
         //CreatePlayers(8);
@@ -61,8 +61,8 @@ public class Game : MonoBehaviour
     {
         if(iIncreaser) i++;
         if(i==50) CreateDecks();
-        if(i==100) CreatePlayers(8);
-        if(i==150) StartGame();
+        //if(i==100) CreatePlayers(8);
+        //if(i==150) StartGame();
         if(i==200)
         {
             iIncreaser = false;
@@ -72,15 +72,22 @@ public class Game : MonoBehaviour
   
     private void CreateDecks()
     {
-        //var x = PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity);
-        //for (int i = 0; i < 164; i++) cardDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
-        for (int i = 0; i < 164; i++) cardDeck.Add(Instantiate(Card).GetComponent<Card>());
+        /*for (int i = 0; i < 164; i++) cardDeck.Add(Instantiate(Card).GetComponent<Card>());
         for (int i = 0; i < 12; i++) highNoonDeck.Add(Instantiate(Card).GetComponent<Card>());
         for (int i = 0; i < 14; i++) fistfulDeck.Add(Instantiate(Card).GetComponent<Card>());
         for (int i = 0; i < 9; i++) wildWestDeck.Add(Instantiate(Card).GetComponent<Card>());
         for (int i = 0; i < 24; i++) lootDeck.Add(Instantiate(Card).GetComponent<Card>());
         for (int i = 0; i < 63; i++) characterDeck.Add(Instantiate(Card).GetComponent<Card>());
-        for (int i = 0; i < 8; i++) roleDeck.Add(Instantiate(Card).GetComponent<Card>());
+        for (int i = 0; i < 8; i++) roleDeck.Add(Instantiate(Card).GetComponent<Card>());*/
+
+
+        for (int i = 0; i < 164; i++) cardDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
+        for (int i = 0; i < 12; i++) highNoonDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
+        for (int i = 0; i < 14; i++) fistfulDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
+        for (int i = 0; i < 9; i++) wildWestDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
+        for (int i = 0; i < 24; i++) lootDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
+        for (int i = 0; i < 63; i++) characterDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
+        for (int i = 0; i < 8; i++) roleDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
         SetUpPlayingDeck();
         SetUpHighNoonDeck();
         SetUpFistfulDeck();
@@ -283,7 +290,7 @@ public class Game : MonoBehaviour
         highNoonDeck[10].SetUpCard(1, "Thirst", "Textures/High Noon/Sete", "Each player only draws 1 card in phase 1.");
         highNoonDeck[11].SetUpCard(1, "Shootout", "Textures/High Noon/Sparatoria", "Each player can play a second BANG! during his turn.");
         highNoonDeck = Shuffle(highNoonDeck);
-        highNoonDeck.Add(Instantiate(Card).GetComponent<Card>());
+        highNoonDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
         highNoonDeck[12].SetUpCard(1, "High Noon", "Textures/High Noon/Mezzogiorno di Fuoco", "Each player loses 1 life at the start of their turn.");
         float i = 0.02f * highNoonDeck.Count;
         foreach (Card card in highNoonDeck)
@@ -312,7 +319,7 @@ public class Game : MonoBehaviour
         fistfulDeck[12].SetUpCard(2, "Russian Roulette", "Textures/A Fistful of Cards/Roulette Russa", "When Russian Roulette enters play, starting from the Sheriff each player must discard Missed!, until one player doesn't; he loses 2 lifes and the Roulette ends.");
         fistfulDeck[13].SetUpCard(2, "Vendetta", "Textures/A Fistful of Cards/Vendetta", "At the end of his turn, each player tests. If it is ♥, he plays another turn (at the end of which he doesn't test for this again).");
         fistfulDeck = Shuffle(fistfulDeck);
-        fistfulDeck.Add(Instantiate(Card).GetComponent<Card>());
+        fistfulDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
         fistfulDeck[14].SetUpCard(2, "A Fistful of Cards", "Textures/A Fistful of Cards/Per un Ugno di Carte", "At the beginning of his turn, the player is target of as many BANGs! as the number of the cards in his hand.");
         float i = 0.02f * fistfulDeck.Count;
         foreach (Card card in fistfulDeck)
@@ -336,7 +343,7 @@ public class Game : MonoBehaviour
         wildWestDeck[7].SetUpCard(3, "Showdown", "Textures/Wild West Show/WWS cards/Regolamento di Conti", "All cards may be played as they were BANG!. All BANGs! may be played as they were Missed!.");
         wildWestDeck[8].SetUpCard(3, "Sacagaway", "Textures/Wild West Show/WWS cards/Sacagaway", "All players play with their hands revealed.");
         wildWestDeck = Shuffle(wildWestDeck);
-        wildWestDeck.Add(Instantiate(Card).GetComponent<Card>());
+        wildWestDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
         wildWestDeck[9].SetUpCard(3, "Wild West Show", "Textures/Wild West Show/WWS cards/Wild West Show", "The goal of each player becomes: \"Be the last one in play!\"");
         float i = 0.02f * wildWestDeck.Count;
         foreach (Card card in wildWestDeck)
@@ -494,7 +501,7 @@ public class Game : MonoBehaviour
 
     public static List<Card> Shuffle(List<Card> deck)
     {
-        System.Random r = new System.Random();
+        /*System.Random r = new System.Random();
         int n = deck.Count;
         while (n > 1)
         {
@@ -503,7 +510,7 @@ public class Game : MonoBehaviour
             var temp = deck[k];
             deck[k] = deck[n];
             deck[n] = temp;
-        }
+        }*/
 
         return deck;
     }

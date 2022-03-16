@@ -4,42 +4,29 @@ using UnityEngine;
 using Photon.Pun;
 using UnityEngine.UI;
 using Photon.Realtime;
+using UnityEngine.SceneManagement;
 
 public class ConnectToServer : MonoBehaviourPunCallbacks
 {
-    public Text textField;
+    public InputField usernameInput;
+    public Text buttonText;
+    public Text errorMessage;
 
-    private int counter = 0;
-    private void Start()
+    public void OnClickConnect()
     {
-        PhotonNetwork.ConnectUsingSettings();
-    }
-
-    private void Update()
-    {
-        if(counter % 15 == 0)
+        if(usernameInput.text.Length >= 3 && buttonText.text == "Connect")
         {
-            textField.text += ".";
-            if(counter % 60 == 0)
-            {
-                textField.text = "Connecting to server";
-                counter = 0;
-            }
+            PhotonNetwork.NickName = usernameInput.text;
+            buttonText.text = "Connecting...";
+            PhotonNetwork.AutomaticallySyncScene = true;
+            PhotonNetwork.ConnectUsingSettings();
         }
-        counter++;
     }
 
     public override void OnConnectedToMaster()
     {
-        Debug.Log("Connected to Photon!");
-        PhotonNetwork.JoinLobby();
-    }
-
-    public override void OnJoinedLobby()
-    {
         UnityEngine.SceneManagement.SceneManager.LoadScene("LobbyScene");
     }
-
     public override void OnDisconnected(DisconnectCause cause)
     {
         Debug.LogWarning($"Failed to connect: {cause}");
