@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 using UnityEngine.UI;
+using Photon.Realtime;
 
 public class ConnectToServer : MonoBehaviourPunCallbacks
 {
@@ -30,11 +31,17 @@ public class ConnectToServer : MonoBehaviourPunCallbacks
 
     public override void OnConnectedToMaster()
     {
+        Debug.Log("Connected to Photon!");
         PhotonNetwork.JoinLobby();
     }
 
     public override void OnJoinedLobby()
     {
         UnityEngine.SceneManagement.SceneManager.LoadScene("LobbyScene");
+    }
+
+    public override void OnDisconnected(DisconnectCause cause)
+    {
+        Debug.LogWarning($"Failed to connect: {cause}");
     }
 }
