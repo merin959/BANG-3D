@@ -44,7 +44,7 @@ public class TurnManager : MonoBehaviour
     }
     private void DoPhase3(Player activePlayer)
     {
-
+        EndTurn?.Invoke(activePlayer);
     }
 
 
