@@ -386,7 +386,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Card: {fileID: 2366326625840643865, guid: 51981e940eb7d81418762bc6acc787b7, type: 3}
   GameArea: {fileID: 870099440}
-  Player: {fileID: 6733142559940004548, guid: 505ce10aa0de78a48bac0cb5bad88e12, type: 3}
+  PlayerInfo: {fileID: 6733142559940004548, guid: 505ce10aa0de78a48bac0cb5bad88e12, type: 3}
   GameCamera: {fileID: 998141789}
   players: []
   cardDeck: []
@@ -809,7 +809,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 423b87e692245654ca0f526cfa676a3f, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1

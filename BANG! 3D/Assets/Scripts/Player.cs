@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;   //delete after real player names
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -12,6 +11,7 @@ public class Player : MonoBehaviour
     PhotonView view;
 
     private string playerName;
+    public string PlayerName => playerName;
     private int lifes;
     public int Lifes
     {
@@ -47,7 +47,7 @@ public class Player : MonoBehaviour
     }
 
     private bool isTopOrBottom;
-    public bool IsTopOrBottom { get { return isTopOrBottom; } }
+    public bool IsTopOrBottom { get { return isTopOrBottom; } set { isTopOrBottom = value; SetUpInfo(); } }
 
     private float MAX_X_IN_PLAY = 17.4f;
     private float MAX_Z_IN_PLAY = 28.5f;
@@ -57,18 +57,17 @@ public class Player : MonoBehaviour
         view = GetComponent<PhotonView>();
     }   
 
-    public void SetUpPlayerInfo(Card mainCharacter, Card secondaryCharacter, Card role, bool isTopOrBottom)
+    public void SetUpPlayerInfo(Card mainCharacter, Card secondaryCharacter, Card role, bool isTopOrBottom, string nickName)
     {
         cardsInHand = new List<Card>();
         cardsInPlay = new List<Card>();
-        this.playerName = RandomString(25);
+        this.playerName = nickName;
         this.role = role;
         this.mainCharacter = mainCharacter;
         this.secondaryCharacter = secondaryCharacter;
         this.lifes = mainCharacter.CharacterCardLives;
         this.gold = 0;
         this.isTopOrBottom = isTopOrBottom;
-        SetUpInfo();
     }
 
     public void SetUpInfo(){ 
@@ -102,13 +101,6 @@ public class Player : MonoBehaviour
         cardsInHand.Remove(cardToRemove);
         SetUpCardsInHand();
         FixCardAngles();
-    }
-
-    private static string RandomString(int length)
-    {
-        System.Random random = new System.Random();
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        return new string(Enumerable.Repeat(chars, length).Select(s => s[random.Next(s.Length)]).ToArray());
     }
 
     internal void SetUpCardsInHand()

@@ -12,7 +12,7 @@ public class Game : MonoBehaviour
 
     public GameObject Card;
     public GameObject GameArea;
-    public GameObject Player;
+    public GameObject PlayerInfo;
 
     public Camera GameCamera;
 
@@ -61,7 +61,7 @@ public class Game : MonoBehaviour
     {
         if(iIncreaser) i++;
         if(i==50) CreateDecks();
-        //if(i==100) CreatePlayers(8);
+        if(i==100) CreatePlayers();
         //if(i==150) StartGame();
         if(i==200)
         {
@@ -501,7 +501,7 @@ public class Game : MonoBehaviour
 
     public static List<Card> Shuffle(List<Card> deck)
     {
-        /*System.Random r = new System.Random();
+        System.Random r = new System.Random();
         int n = deck.Count;
         while (n > 1)
         {
@@ -510,85 +510,32 @@ public class Game : MonoBehaviour
             var temp = deck[k];
             deck[k] = deck[n];
             deck[n] = temp;
-        }*/
+        }
 
         return deck;
     }
 
-    private void CreatePlayers(int numberOfPlayers)
+    private void CreatePlayers()
     {
-        for (int i = 0; i < numberOfPlayers; i++) players.Add(Instantiate(Player).GetComponent<Player>());
-
-        for (int i = 0; i < numberOfPlayers; i++) gameRoleDeck.Add(roleDeck[i]);
-
+        for (int i = 0; i < PhotonNetwork.CurrentRoom.PlayerCount; i++) gameRoleDeck.Add(roleDeck[i]);
         gameRoleDeck = Shuffle(gameRoleDeck);
+
         System.Random rand = new System.Random();
-        int x = 0;
-        foreach (Player player in players)
+
+        foreach (KeyValuePair<int, Photon.Realtime.Player> player in PhotonNetwork.CurrentRoom.Players)
         {
-            if (x >= players.Count / 2 + players.Count % 2) player.SetUpPlayerInfo(characterDeck[0], characterDeck[1], gameRoleDeck[0], false);
-            else player.SetUpPlayerInfo(characterDeck[0], characterDeck[1], gameRoleDeck[0], true);
-            player.transform.SetParent(Canvas.instance.transform.Find("PlayerAreas").transform);
+            Player newPlayerInfo = PhotonNetwork.Instantiate(PlayerInfo.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Player>();
+            newPlayerInfo.SetUpPlayerInfo(characterDeck[0], characterDeck[1], gameRoleDeck[0], false, player.Value.NickName);
+            players.Add(newPlayerInfo);
+            Debug.Log("Player " + newPlayerInfo.PlayerName + ": " + newPlayerInfo.MainCharacter.CardName + " (" + newPlayerInfo.IsTopOrBottom + ")");
+            newPlayerInfo.transform.SetParent(Canvas.instance.transform.Find("PlayerAreas").transform);
             characterDeck[0].FlipCard();
             characterDeck.RemoveAt(0);
             characterDeck.RemoveAt(0);
             gameRoleDeck.RemoveAt(0);
-            x++;
-        }
-        switch (players.Count)
-        {
-            case 4:
-                {
-                    players[0].Characters[0].transform.localPosition = new Vector3(-MAX_X / 2, 0.1f, MAX_Y);
-                    players[1].Characters[0].transform.localPosition = new Vector3(MAX_X / 2, 0.1f, MAX_Y);
-                    players[2].Characters[0].transform.localPosition = new Vector3(-MAX_X / 2, 0.1f, -MAX_Y);
-                    players[3].Characters[0].transform.localPosition = new Vector3(MAX_X / 2, 0.1f, -MAX_Y);
-                    break;
-                }
-            case 5:
-                {
-                    players[0].Characters[0].transform.localPosition = new Vector3(-MAX_X * 3 / 4, 0.1f, MAX_Y);
-                    players[1].Characters[0].transform.localPosition = new Vector3(0, 0.1f, MAX_Y);
-                    players[2].Characters[0].transform.localPosition = new Vector3(MAX_X * 3 / 4, 0.1f, MAX_Y);
-                    players[3].Characters[0].transform.localPosition = new Vector3(-MAX_X * 2 / 3, 0.1f, -MAX_Y);
-                    players[4].Characters[0].transform.localPosition = new Vector3(MAX_X * 2 / 3, 0.1f, -MAX_Y);
-                    break;
-                }
-            case 6:
-                {
-                    players[0].Characters[0].transform.localPosition = new Vector3(-MAX_X * 3/ 4, 0.1f, MAX_Y);
-                    players[1].Characters[0].transform.localPosition = new Vector3(0, 0.1f, MAX_Y);
-                    players[2].Characters[0].transform.localPosition = new Vector3(MAX_X * 3/ 4, 0.1f, MAX_Y);
-                    players[3].Characters[0].transform.localPosition = new Vector3(-MAX_X * 3 / 4, 0.1f, -MAX_Y);
-                    players[4].Characters[0].transform.localPosition = new Vector3(0, 0.1f, -MAX_Y);
-                    players[5].Characters[0].transform.localPosition = new Vector3(MAX_X * 3 / 4, 0.1f, -MAX_Y);
-                    break;
-                }
-            case 7:
-                {
-                    players[0].Characters[0].transform.localPosition = new Vector3(-MAX_X * 4 / 5, 0.1f, MAX_Y);
-                    players[1].Characters[0].transform.localPosition = new Vector3(-MAX_X * 4 / 15, 0.1f, MAX_Y);
-                    players[2].Characters[0].transform.localPosition = new Vector3(MAX_X * 4 / 15, 0.1f, MAX_Y);
-                    players[3].Characters[0].transform.localPosition = new Vector3(MAX_X * 4 / 5, 0.1f, MAX_Y);
-                    players[4].Characters[0].transform.localPosition = new Vector3(-MAX_X * 3 / 4, 0.1f, -MAX_Y);
-                    players[5].Characters[0].transform.localPosition = new Vector3(0, 0.1f, -MAX_Y);
-                    players[6].Characters[0].transform.localPosition = new Vector3(MAX_X * 3 / 4, 0.1f, -MAX_Y);
-                    break;
-                }
-            case 8:
-                {
-                    players[0].Characters[0].transform.localPosition = new Vector3(-MAX_X * 4 / 5, 0.1f, MAX_Y);
-                    players[1].Characters[0].transform.localPosition = new Vector3(-MAX_X * 4 / 15, 0.1f, MAX_Y);
-                    players[2].Characters[0].transform.localPosition = new Vector3(MAX_X * 4 / 15, 0.1f, MAX_Y);
-                    players[3].Characters[0].transform.localPosition = new Vector3(MAX_X * 4 / 5, 0.1f, MAX_Y);
-                    players[4].Characters[0].transform.localPosition = new Vector3(-MAX_X * 4 / 5, 0.1f, -MAX_Y);
-                    players[5].Characters[0].transform.localPosition = new Vector3(-MAX_X * 4 / 15, 0.1f, -MAX_Y);
-                    players[6].Characters[0].transform.localPosition = new Vector3(MAX_X * 4 / 15, 0.1f, -MAX_Y);
-                    players[7].Characters[0].transform.localPosition = new Vector3(MAX_X * 4 / 5, 0.1f, -MAX_Y);
-                    break;
-                }
         }
 
+        SetUpPlayerPositions();
         foreach(Player player in players) player.transform.localPosition = GetUIPosition(player);
     }
 
@@ -757,6 +704,93 @@ public class Game : MonoBehaviour
                 deck.RemoveAt(0);
             }
             deck[0].FlipCard();
+        }
+    }
+
+    private void SetUpPlayerPositions()
+    {
+        switch (players.Count)
+        {
+            case 4:
+                {
+                    players[0].Characters[0].transform.localPosition = new Vector3(-MAX_X / 2, 0.1f, MAX_Y);
+                    players[1].Characters[0].transform.localPosition = new Vector3(MAX_X / 2, 0.1f, MAX_Y);
+                    players[2].Characters[0].transform.localPosition = new Vector3(-MAX_X / 2, 0.1f, -MAX_Y);
+                    players[3].Characters[0].transform.localPosition = new Vector3(MAX_X / 2, 0.1f, -MAX_Y);
+                    players[0].IsTopOrBottom = true;
+                    players[1].IsTopOrBottom = true;
+                    players[2].IsTopOrBottom = false;
+                    players[3].IsTopOrBottom = false;
+                    break;
+                }
+            case 5:
+                {
+                    players[0].Characters[0].transform.localPosition = new Vector3(-MAX_X * 3 / 4, 0.1f, MAX_Y);
+                    players[1].Characters[0].transform.localPosition = new Vector3(0, 0.1f, MAX_Y);
+                    players[2].Characters[0].transform.localPosition = new Vector3(MAX_X * 3 / 4, 0.1f, MAX_Y);
+                    players[3].Characters[0].transform.localPosition = new Vector3(-MAX_X * 2 / 3, 0.1f, -MAX_Y);
+                    players[4].Characters[0].transform.localPosition = new Vector3(MAX_X * 2 / 3, 0.1f, -MAX_Y);
+                    players[0].IsTopOrBottom = true;
+                    players[1].IsTopOrBottom = true;
+                    players[2].IsTopOrBottom = true;
+                    players[3].IsTopOrBottom = false;
+                    players[4].IsTopOrBottom = false;
+                    break;
+                }
+            case 6:
+                {
+                    players[0].Characters[0].transform.localPosition = new Vector3(-MAX_X * 3 / 4, 0.1f, MAX_Y);
+                    players[1].Characters[0].transform.localPosition = new Vector3(0, 0.1f, MAX_Y);
+                    players[2].Characters[0].transform.localPosition = new Vector3(MAX_X * 3 / 4, 0.1f, MAX_Y);
+                    players[3].Characters[0].transform.localPosition = new Vector3(-MAX_X * 3 / 4, 0.1f, -MAX_Y);
+                    players[4].Characters[0].transform.localPosition = new Vector3(0, 0.1f, -MAX_Y);
+                    players[5].Characters[0].transform.localPosition = new Vector3(MAX_X * 3 / 4, 0.1f, -MAX_Y);
+                    players[0].IsTopOrBottom = true;
+                    players[1].IsTopOrBottom = true;
+                    players[2].IsTopOrBottom = true;
+                    players[3].IsTopOrBottom = false;
+                    players[4].IsTopOrBottom = false;
+                    players[5].IsTopOrBottom = false;
+                    break;
+                }
+            case 7:
+                {
+                    players[0].Characters[0].transform.localPosition = new Vector3(-MAX_X * 4 / 5, 0.1f, MAX_Y);
+                    players[1].Characters[0].transform.localPosition = new Vector3(-MAX_X * 4 / 15, 0.1f, MAX_Y);
+                    players[2].Characters[0].transform.localPosition = new Vector3(MAX_X * 4 / 15, 0.1f, MAX_Y);
+                    players[3].Characters[0].transform.localPosition = new Vector3(MAX_X * 4 / 5, 0.1f, MAX_Y);
+                    players[4].Characters[0].transform.localPosition = new Vector3(-MAX_X * 3 / 4, 0.1f, -MAX_Y);
+                    players[5].Characters[0].transform.localPosition = new Vector3(0, 0.1f, -MAX_Y);
+                    players[6].Characters[0].transform.localPosition = new Vector3(MAX_X * 3 / 4, 0.1f, -MAX_Y);
+                    players[0].IsTopOrBottom = true;
+                    players[1].IsTopOrBottom = true;
+                    players[2].IsTopOrBottom = true;
+                    players[3].IsTopOrBottom = true;
+                    players[4].IsTopOrBottom = false;
+                    players[5].IsTopOrBottom = false;
+                    players[6].IsTopOrBottom = false;
+                    break;
+                }
+            case 8:
+                {
+                    players[0].Characters[0].transform.localPosition = new Vector3(-MAX_X * 4 / 5, 0.1f, MAX_Y);
+                    players[1].Characters[0].transform.localPosition = new Vector3(-MAX_X * 4 / 15, 0.1f, MAX_Y);
+                    players[2].Characters[0].transform.localPosition = new Vector3(MAX_X * 4 / 15, 0.1f, MAX_Y);
+                    players[3].Characters[0].transform.localPosition = new Vector3(MAX_X * 4 / 5, 0.1f, MAX_Y);
+                    players[4].Characters[0].transform.localPosition = new Vector3(-MAX_X * 4 / 5, 0.1f, -MAX_Y);
+                    players[5].Characters[0].transform.localPosition = new Vector3(-MAX_X * 4 / 15, 0.1f, -MAX_Y);
+                    players[6].Characters[0].transform.localPosition = new Vector3(MAX_X * 4 / 15, 0.1f, -MAX_Y);
+                    players[7].Characters[0].transform.localPosition = new Vector3(MAX_X * 4 / 5, 0.1f, -MAX_Y);
+                    players[0].IsTopOrBottom = true;
+                    players[1].IsTopOrBottom = true;
+                    players[2].IsTopOrBottom = true;
+                    players[3].IsTopOrBottom = true;
+                    players[4].IsTopOrBottom = false;
+                    players[5].IsTopOrBottom = false;
+                    players[6].IsTopOrBottom = false;
+                    players[7].IsTopOrBottom = false;
+                    break;
+                }
         }
     }
 }

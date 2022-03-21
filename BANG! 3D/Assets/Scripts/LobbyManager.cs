@@ -39,7 +39,6 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
             errorMessage.text = "";
             PhotonNetwork.CreateRoom(roomInputField.text.ToUpper(), new RoomOptions() { MaxPlayers = 8 });
-            roomInputField.text = "";
         }
         else
         {
@@ -89,6 +88,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     {
         if (returnCode == 32758) errorMessage.text = "This room doesn't exist.";// room doesn't exist
         else if (returnCode == 32765) errorMessage.text = "This room is currently full.";// room is full
+        else if (returnCode == 32764) errorMessage.text = "This room is currently closed.";// room is full
         else errorMessage.text = returnCode + ": " + message + ".";
     }
 
@@ -100,6 +100,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     public override void OnLeftRoom()
     {
         lobbyPanel.SetActive(true);
+        roomInputField.text = "";
         roomPanel.SetActive(false);
     }
 
@@ -139,6 +140,8 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
     public void OnClickPlayButton()
     {
+        PhotonNetwork.CurrentRoom.IsOpen = false;
+        PhotonNetwork.CurrentRoom.IsVisible = false;
         PhotonNetwork.LoadLevel("GameScene");
     }
 }
