@@ -5,8 +5,9 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Photon.Pun;
+using Photon.Realtime;
 
-public class Card : MonoBehaviour
+public class Card : MonoBehaviourPun, IPunObservable
 {
     PhotonView view;
 
@@ -62,7 +63,7 @@ public class Card : MonoBehaviour
         {
             case 0:
                 {
-                    CanBeMoved = true;
+                    //CanBeMoved = true;
                     cardBack = Resources.Load<Sprite>("Textures/Card backs/Playing Card Background");
                     break;
                 }
@@ -143,5 +144,19 @@ public class Card : MonoBehaviour
 
         this.transform.Find("Front").GetComponent<MeshRenderer>().material.SetTexture("_MainTex", cardImage.texture);
         this.transform.Find("Back").GetComponent<MeshRenderer>().material.SetTexture("_MainTex", cardBack.texture);
+    }
+
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if (stream.IsWriting)
+        {
+            stream.SendNext(transform.position);
+            stream.SendNext(transform.rotation);
+        }
+        else if (stream.IsReading)
+        {
+            transform.position = (Vector3)stream.ReceiveNext();
+            transform.rotation = (Quaternion)stream.ReceiveNext();
+        }
     }
 }

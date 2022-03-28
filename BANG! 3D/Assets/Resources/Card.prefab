@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 9125647137820716052}
   - component: {fileID: 4446827557871099340}
   - component: {fileID: -5875163537360285238}
-  - component: {fileID: 6526722694285392841}
+  - component: {fileID: 2081484538403316429}
   m_Layer: 0
   m_Name: Card
   m_TagString: Drag
@@ -80,15 +80,15 @@ MonoBehaviour:
   ObservedComponentsFoldoutOpen: 1
   Group: 0
   prefixField: -1
-  Synchronization: 3
-  OwnershipTransfer: 0
+  Synchronization: 2
+  OwnershipTransfer: 1
   observableSearch: 2
   ObservedComponents:
-  - {fileID: 6526722694285392841}
+  - {fileID: 2081484538403316429}
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
---- !u!114 &6526722694285392841
+--- !u!114 &2081484538403316429
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -112,7 +112,7 @@ MonoBehaviour:
     ExtrapolateIncludingRoundTripTime: 1
     ExtrapolateNumberOfStoredPositions: 1
   m_RotationModel:
-    SynchronizeEnabled: 0
+    SynchronizeEnabled: 1
     InterpolateOption: 1
     InterpolateRotateTowardsSpeed: 180
     InterpolateLerpSpeed: 5

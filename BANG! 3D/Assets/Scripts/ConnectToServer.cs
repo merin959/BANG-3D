@@ -31,4 +31,9 @@ public class ConnectToServer : MonoBehaviourPunCallbacks
     {
         Debug.LogWarning($"Failed to connect: {cause}");
     }
+
+    private void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.KeypadEnter)) OnClickConnect();
+    }
 }

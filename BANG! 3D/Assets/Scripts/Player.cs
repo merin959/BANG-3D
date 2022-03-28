@@ -6,12 +6,15 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Photon.Pun;
 
-public class Player : MonoBehaviour
+public class Player : MonoBehaviourPun, IPunObservable     //fix card angles
 {
-    PhotonView view;
+    private Photon.Realtime.Player playerAccount;
+    public Photon.Realtime.Player PlayerAccount
+    {
+        get { return playerAccount; }
+    }
 
-    private string playerName;
-    public string PlayerName => playerName;
+    public string PlayerName => playerAccount.NickName;
     private int lifes;
     public int Lifes
     {
@@ -51,27 +54,22 @@ public class Player : MonoBehaviour
 
     private float MAX_X_IN_PLAY = 17.4f;
     private float MAX_Z_IN_PLAY = 28.5f;
+  
 
-    private void Start()
-    {
-        view = GetComponent<PhotonView>();
-    }   
-
-    public void SetUpPlayerInfo(Card mainCharacter, Card secondaryCharacter, Card role, bool isTopOrBottom, string nickName)
+    public void SetUpPlayerInfo(Card mainCharacter, Card secondaryCharacter, Card role, Photon.Realtime.Player playerAccount)
     {
         cardsInHand = new List<Card>();
         cardsInPlay = new List<Card>();
-        this.playerName = nickName;
         this.role = role;
         this.mainCharacter = mainCharacter;
         this.secondaryCharacter = secondaryCharacter;
         this.lifes = mainCharacter.CharacterCardLives;
         this.gold = 0;
-        this.isTopOrBottom = isTopOrBottom;
+        this.playerAccount = playerAccount;
     }
 
     public void SetUpInfo(){ 
-        transform.Find("PlayerName").GetComponent<Text>().text = playerName;
+        transform.Find("PlayerName").GetComponent<Text>().text = PlayerName;
         if (role.CardName == "Sheriff") transform.Find("PlayerName").GetComponent<Text>().color = new Color(227, 182, 0);
         if(!isTopOrBottom) transform.Find("PlayerName").GetComponent<RectTransform>().localPosition = new Vector3(transform.Find("PlayerName").GetComponent<RectTransform>().localPosition.x, -transform.Find("PlayerName").GetComponent<RectTransform>().localPosition.y, transform.Find("PlayerName").GetComponent<RectTransform>().localPosition.z);
         transform.Find("NumberOfLives").GetComponent<Text>().text = lifes.ToString();
@@ -85,8 +83,13 @@ public class Player : MonoBehaviour
     public void DrawCard(Card drawnCard)
     {
         cardsInHand.Add(drawnCard);
+        //Debug.Log("Old owner: " + drawnCard.CardName + " (" + drawnCard.photonView.Owner + ")");
+        //base.photonView.RequestOwnership();
+        /*drawnCard.photonView.TransferOwnership(playerAccount);
+        if (drawnCard.photonView.IsMine) drawnCard.FlipCard();
+        drawnCard.FlipCard();*/
+        //Debug.Log("New owner: " + drawnCard.CardName + " (" + drawnCard.photonView.Owner + ")");
         SetUpCardsInHand();
-        FixCardAngles();
     }
 
     public void AddCardToPlay(Card cardToBeMovedToHand)
@@ -100,13 +103,24 @@ public class Player : MonoBehaviour
     {
         cardsInHand.Remove(cardToRemove);
         SetUpCardsInHand();
-        FixCardAngles();
     }
 
     internal void SetUpCardsInHand()
     {
-        int j = 0;
-        for (int i = -CardsInHand.Count / 2; i < CardsInHand.Count / 2 + CardsInHand.Count % 2; i++)
+        //int j = 0;
+        for (int i = 0; i < CardsInHand.Count; i++)
+        {
+            CardsInHand[i].transform.eulerAngles = new Vector3(cardsInHand[i].transform.eulerAngles.x, 0, cardsInHand[i].transform.eulerAngles.z);
+            CardsInHand[i].transform.localPosition = new Vector3(
+               Characters[0].transform.localPosition.x + (CardsInHand.Count % 2 == 0 ? 2.5f : 0) + (i - CardsInHand.Count / 2) * 5f,
+               (i - CardsInHand.Count / 2) * 0.01f,
+               Characters[0].transform.localPosition.z > 0 ?
+               (CardsInHand.Count % 2 == 0 ? Characters[0].transform.localPosition.z - 8f + Math.Abs(i >= 0 ? i + 1 : i) * 0.5f : Characters[0].transform.localPosition.z - 8f + Math.Abs(i) * 0.5f) :
+               CardsInHand.Count % 2 == 0 ? Characters[0].transform.localPosition.z + 8f - Math.Abs(i >= 0 ? i + 1 : i) * 0.5f : Characters[0].transform.localPosition.z + 8f - Math.Abs(i) * 0.5f);
+        }
+
+
+        /*for (int i = -CardsInHand.Count / 2 + 1; i < CardsInHand.Count / 2 + CardsInHand.Count % 2 + 1; i++)
         {
             cardsInHand[j].transform.eulerAngles = new Vector3(cardsInHand[j].transform.eulerAngles.x, 0, cardsInHand[j].transform.eulerAngles.z);
             CardsInHand[j].transform.localPosition = new Vector3(
@@ -115,10 +129,10 @@ public class Player : MonoBehaviour
                 Characters[0].transform.localPosition.z > 0 ?
                 (CardsInHand.Count % 2 == 0 ? Characters[0].transform.localPosition.z - 8f  + Math.Abs(i >= 0 ? i + 1: i) * 0.5f: Characters[0].transform.localPosition.z - 8f + Math.Abs(i) * 0.5f) :
                 CardsInHand.Count % 2 == 0 ? Characters[0].transform.localPosition.z + 8f - Math.Abs(i >= 0 ? i + 1: i) * 0.5f : Characters[0].transform.localPosition.z + 8f - Math.Abs(i) * 0.5f);
-            if (isTopOrBottom) CardsInHand[j].transform.Rotate(0, (CardsInHand.Count % 2 == 0 ? 3.5f : 0) + i * 5f + 180, 0);
-            else CardsInHand[j].transform.Rotate(0, (CardsInHand.Count % 2 == 0 ? -3.5f : 0) - i * 5f, 0);
+            /*if (!isTopOrBottom) CardsInHand[j].transform.Rotate(0, (CardsInHand.Count % 2 == 0 ? 3.5f : 0) - i * 5f + 180, 0);
+            els CardsInHand[j].transform.Rotate(0, (CardsInHand.Count % 2 == 0 ? -3.5f : 0) + i * 5f, 0);
             j++;
-        }
+        }*/
         SetUpCardsInPlay();
     }
 
@@ -134,8 +148,17 @@ public class Player : MonoBehaviour
         }
     }
 
-    internal void FixCardAngles()
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
-        foreach (Card c in CardsInHand) c.transform.eulerAngles = new Vector3(c.transform.eulerAngles.x, -c.transform.eulerAngles.y, c.transform.eulerAngles.z);
+        if (stream.IsWriting)
+        {
+            stream.SendNext(transform.position);
+            stream.SendNext(transform.rotation);
+        }
+        else if (stream.IsReading)
+        {
+            transform.position = (Vector3)stream.ReceiveNext();
+            transform.rotation = (Quaternion)stream.ReceiveNext();
+        }
     }
 }

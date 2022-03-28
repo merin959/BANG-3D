@@ -5,8 +5,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using Photon.Pun;
 using Photon.Realtime;
+using ExitGames.Client.Photon;
+using System.Linq;
 
-public class Game : MonoBehaviour
+public class Game : MonoBehaviourPun, IPunObservable
 {
     public static Game instance;
 
@@ -46,60 +48,111 @@ public class Game : MonoBehaviour
     int i;
     bool iIncreaser;
 
+    private const byte CARD_DECK_EVENT = 1;
+    private const byte DISCARD_DECK_EVENT = 2;
+    private const byte HIGH_NOON_DECK_EVENT = 3;
+    private const byte FISTFUL_DECK_EVENT = 4;
+    private const byte WW_DECK_EVENT = 5;
+    private const byte LOOT_DECK_EVENT = 6;
+    private const byte CHARACTER_DECK_EVENT = 7;
+    private const byte ROLE_DECK_EVENT = 8;
+
+    private bool areCardsInstatiated;
+    public bool AreCardsInstatiated
+    {
+        get { return areCardsInstatiated; }
+        set { areCardsInstatiated = value; }
+    }
+
     private void Start()
     {
         i = 0;
         iIncreaser = true;
         instance = this;
         TurnManager.instance.EndTurn += OnEndTurn;
-        //CreateDecks();
-        //CreatePlayers(8);
-        //StartGame();
+        PhotonNetwork.NetworkingClient.EventReceived += NetworkingClient_EventReceived;
+        AreCardsInstatiated = false;
     }
 
     private void Update()
     {
-        if(iIncreaser) i++;
-        if(i==50) CreateDecks();
-        if(i==100) CreatePlayers();
-        //if(i==150) StartGame();
-        if(i==200)
+        if (iIncreaser) i++;
+        if (i == 50 && PhotonNetwork.IsMasterClient)
         {
-            iIncreaser = false;
+            photonView.RPC("SetUpPlayingDeck", RpcTarget.AllBuffered);
+            photonView.RPC("SetUpHighNoonDeck", RpcTarget.AllBuffered);
+            photonView.RPC("SetUpFistfulDeck", RpcTarget.AllBuffered);
+            photonView.RPC("SetUpWildWestDeck", RpcTarget.AllBuffered);
+            photonView.RPC("SetUpLootDeck", RpcTarget.AllBuffered);
+            photonView.RPC("SetUpCharacterDeck", RpcTarget.AllBuffered);
+            photonView.RPC("SetUpRolesDeck", RpcTarget.AllBuffered);
+            Debug.Log("Deck init finished");
         }
+        //if (i == 100) photonView.RPC("CreatePlayers", RpcTarget.MasterClient);//) CreatePlayers();
+        //if (i == 150) photonView.RPC("StartGame", RpcTarget.MasterClient);//) StartGame();
+        if (i == 200) iIncreaser = false;
         HandleClick();
     }
-  
-    private void CreateDecks()
+
+    private void NetworkingClient_EventReceived(EventData eventTransformData)
     {
-        /*for (int i = 0; i < 164; i++) cardDeck.Add(Instantiate(Card).GetComponent<Card>());
-        for (int i = 0; i < 12; i++) highNoonDeck.Add(Instantiate(Card).GetComponent<Card>());
-        for (int i = 0; i < 14; i++) fistfulDeck.Add(Instantiate(Card).GetComponent<Card>());
-        for (int i = 0; i < 9; i++) wildWestDeck.Add(Instantiate(Card).GetComponent<Card>());
-        for (int i = 0; i < 24; i++) lootDeck.Add(Instantiate(Card).GetComponent<Card>());
-        for (int i = 0; i < 63; i++) characterDeck.Add(Instantiate(Card).GetComponent<Card>());
-        for (int i = 0; i < 8; i++) roleDeck.Add(Instantiate(Card).GetComponent<Card>());*/
-
-
-        for (int i = 0; i < 164; i++) cardDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
-        for (int i = 0; i < 12; i++) highNoonDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
-        for (int i = 0; i < 14; i++) fistfulDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
-        for (int i = 0; i < 9; i++) wildWestDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
-        for (int i = 0; i < 24; i++) lootDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
-        for (int i = 0; i < 63; i++) characterDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
-        for (int i = 0; i < 8; i++) roleDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
-        SetUpPlayingDeck();
-        SetUpHighNoonDeck();
-        SetUpFistfulDeck();
-        SetUpWildWestDeck();
-        SetUpLootDeck();
-        SetUpCharacterDeck();
-        SetUpRolesDeck();
+        /*try { object[] data = (object[])eventTransformData.CustomData; }
+        catch { Debug.Log("Failed"); return; }
+        if (PhotonNetwork.IsMasterClient || AreCardsInstatiated) return;
+        else AreCardsInstatiated = true;
+        object[] datas = null;
+        if (eventTransformData.CustomData.GetType().IsArray) datas = (object[])eventTransformData.CustomData;
+        else datas = ((object[])eventTransformData.CustomData).Cast<object>().ToArray();
+        switch (eventTransformData.Code)
+        {
+            case CARD_DECK_EVENT:
+                {
+                    SetTransforms(cardDeck, datas);
+                    break;
+                }
+            case DISCARD_DECK_EVENT:
+                {
+                    SetTransforms(discardDeck, datas);
+                    break;
+                }
+            case HIGH_NOON_DECK_EVENT:
+                {
+                    SetTransforms(highNoonDeck, datas);
+                    break;
+                }
+            case FISTFUL_DECK_EVENT:
+                {
+                    SetTransforms(fistfulDeck, datas);
+                    break;
+                }
+            case WW_DECK_EVENT:
+                {
+                    SetTransforms(wildWestDeck, datas);
+                    break;
+                }
+            case LOOT_DECK_EVENT:
+                {
+                    SetTransforms(lootDeck, datas);
+                    break;
+                }
+            case CHARACTER_DECK_EVENT:
+                {
+                    SetTransforms(characterDeck, datas);
+                    break;
+                }
+            case ROLE_DECK_EVENT:
+                {
+                    SetTransforms(roleDeck, datas);
+                    break;
+                }
+        }
+        Debug.Log("Deck copy finished");*/
     }
 
+    [PunRPC]
     private void SetUpPlayingDeck()
     {
-        System.Random r = new System.Random();
+        for (int j = 0; j < 164; j++) cardDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
         cardDeck[0].SetUpPlayingCard(0, "BANG!", "Textures/Vanilla/Playing cards/Bang! 0", "Deal 1 damage to a player in range.", "A", '♠', 0);
         cardDeck[1].SetUpPlayingCard(0, "BANG!", "Textures/Vanilla/Playing cards/Bang! 1", "Deal 1 damage to a player in range.", "2", '♦', 0);
         cardDeck[2].SetUpPlayingCard(0, "BANG!", "Textures/Vanilla/Playing cards/Bang! 2", "Deal 1 damage to a player in range.", "3", '♦', 0);
@@ -264,19 +317,22 @@ public class Game : MonoBehaviour
         cardDeck[161].SetUpPlayingCard(0, "Springfield", "Textures/Dodge City/Playing cards/Springfield", "Play this card and discard any other card to deal 1 damage to any player.", "K", '♠', 0);
         cardDeck[162].SetUpPlayingCard(0, "Tequila", "Textures/Dodge City/Playing cards/Tequila", "Play this card and discard any other card to restore 1 life to any player (including yourself).", "9", '♣', 0);
         cardDeck[163].SetUpPlayingCard(0, "Whisky", "Textures/Dodge City/Playing cards/Whisky", "Play this card and discard any other card to restore 2 lifes.", "Q", '♥', 0);
-        cardDeck = Shuffle(cardDeck);
+        if (PhotonNetwork.IsMasterClient) cardDeck = Shuffle(cardDeck);
         float i = 0.02f * cardDeck.Count;
         foreach (Card card in cardDeck)
         {
             card.FlipCard();
             card.transform.SetParent(GameArea.transform, false);
-            card.transform.localPosition = new Vector3(-10, i, 0);
+            if (PhotonNetwork.IsMasterClient) card.transform.localPosition = new Vector3(-10, i, 0);
             i -= 0.02f;
         }
+       // if (PhotonNetwork.IsMasterClient) PhotonNetwork.RaiseEvent(CARD_DECK_EVENT, GetTransforms(cardDeck), new RaiseEventOptions() { Receivers = ReceiverGroup.Others}, SendOptions.SendReliable);
     }
 
+    [PunRPC]
     private void SetUpHighNoonDeck()
     {
+        for (int j = 0; j < 12; j++) highNoonDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
         highNoonDeck[0].SetUpCard(1, "Blessing", "Textures/High Noon/Benedizione", "The suit of all cards is ♥.");
         highNoonDeck[1].SetUpCard(1, "Ghost Town", "Textures/High Noon/Città Fantasma", "During their turn, eliminated players return to the game as ghosts. In phase 1, they draw 3 cards and cannot die. At the end of their turn, they are eliminated again.");
         highNoonDeck[2].SetUpCard(1, "Gold Rush", "Textures/High Noon/Corsa all'Oro", "The game proceeds counter-clockwise for one round, starting with Sheriff. Effects proceed clockwise.");
@@ -289,7 +345,7 @@ public class Game : MonoBehaviour
         highNoonDeck[9].SetUpCard(1, "The Sermon", "Textures/High Noon/Sermone", "Players cannot play BANG!.");
         highNoonDeck[10].SetUpCard(1, "Thirst", "Textures/High Noon/Sete", "Each player only draws 1 card in phase 1.");
         highNoonDeck[11].SetUpCard(1, "Shootout", "Textures/High Noon/Sparatoria", "Each player can play a second BANG! during his turn.");
-        highNoonDeck = Shuffle(highNoonDeck);
+        if (PhotonNetwork.IsMasterClient) highNoonDeck = Shuffle(highNoonDeck);
         highNoonDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
         highNoonDeck[12].SetUpCard(1, "High Noon", "Textures/High Noon/Mezzogiorno di Fuoco", "Each player loses 1 life at the start of their turn.");
         float i = 0.02f * highNoonDeck.Count;
@@ -297,13 +353,16 @@ public class Game : MonoBehaviour
         {
             card.FlipCard();
             card.transform.SetParent(GameArea.transform, false);
-            card.transform.localPosition = new Vector3(-55, i, 0);
+            if (PhotonNetwork.IsMasterClient) card.transform.localPosition = new Vector3(-55, i, 0);
             i -= 0.02f;
         }
+        //if (PhotonNetwork.IsMasterClient) PhotonNetwork.RaiseEvent(HIGH_NOON_DECK_EVENT, GetTransforms(highNoonDeck), new RaiseEventOptions() { Receivers = ReceiverGroup.Others}, SendOptions.SendReliable);
     }
 
+    [PunRPC]
     private void SetUpFistfulDeck()
     {
+        for (int j = 0; j < 14; j++) fistfulDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
         fistfulDeck[0].SetUpCard(2, "Ambush", "Textures/A Fistful of Cards/Agguato", "The distance between any two players is 1. This is modified only by cards in play.");
         fistfulDeck[1].SetUpCard(2, "Sniper", "Textures/A Fistful of Cards/Cecchino", "During your turn, the player may play 2 BANGs! together againts a player, this counts as a BANG! it may be cancelled only by 2 Missed! effects.");
         fistfulDeck[2].SetUpCard(2, "Dead Man", "Textures/A Fistful of Cards/Dead Man", "During his turn, the player who was eliminated first comes back to play with 2 lifes and 2 cards.");
@@ -318,7 +377,7 @@ public class Game : MonoBehaviour
         fistfulDeck[11].SetUpCard(2, "Rinochet", "Textures/A Fistful of Cards/Rimbalzo", "Each player may play BANG! againts a card in play in front of any player; the card is discarded if its owner doesn't play a Missed! effect.");
         fistfulDeck[12].SetUpCard(2, "Russian Roulette", "Textures/A Fistful of Cards/Roulette Russa", "When Russian Roulette enters play, starting from the Sheriff each player must discard Missed!, until one player doesn't; he loses 2 lifes and the Roulette ends.");
         fistfulDeck[13].SetUpCard(2, "Vendetta", "Textures/A Fistful of Cards/Vendetta", "At the end of his turn, each player tests. If it is ♥, he plays another turn (at the end of which he doesn't test for this again).");
-        fistfulDeck = Shuffle(fistfulDeck);
+        if (PhotonNetwork.IsMasterClient) fistfulDeck = Shuffle(fistfulDeck);
         fistfulDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
         fistfulDeck[14].SetUpCard(2, "A Fistful of Cards", "Textures/A Fistful of Cards/Per un Ugno di Carte", "At the beginning of his turn, the player is target of as many BANGs! as the number of the cards in his hand.");
         float i = 0.02f * fistfulDeck.Count;
@@ -326,13 +385,16 @@ public class Game : MonoBehaviour
         {
             card.FlipCard();
             card.transform.SetParent(GameArea.transform, false);
-            card.transform.localPosition = new Vector3(-75, i, 0);
+            if (PhotonNetwork.IsMasterClient) card.transform.localPosition = new Vector3(-75, i, 0);
             i -= 0.02f;
         }
+        //if (PhotonNetwork.IsMasterClient) PhotonNetwork.RaiseEvent(FISTFUL_DECK_EVENT, GetTransforms(fistfulDeck), new RaiseEventOptions() { Receivers = ReceiverGroup.Others}, SendOptions.SendReliable);
     }
 
+    [PunRPC]
     private void SetUpWildWestDeck()
     {
+        for (int j = 0; j < 9; j++) wildWestDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
         wildWestDeck[0].SetUpCard(3, "Ambush", "Textures/Wild West Show/WWS cards/Bavaglio", "Players cannot talk. Whoever talks, loses 1 life.");
         wildWestDeck[1].SetUpCard(3, "Bone Orchard", "Textures/Wild West Show/WWS cards/Camposanto", "At the start of their turn, each eliminated player returns to play with 1 life. Deal them roles at random from those of the eliminated players.");
         wildWestDeck[2].SetUpCard(3, "Darling Valentine", "Textures/Wild West Show/WWS cards/Darling Valentine", "At the start of his turn (before phase 1), each players discards his hand and draws the same number of cards.");
@@ -342,7 +404,7 @@ public class Game : MonoBehaviour
         wildWestDeck[6].SetUpCard(3, "Miss Susanna", "Textures/Wild West Show/WWS cards/Miss Susanna", "During phase 2, each player must play at least 3 cards. If he doesn't, he loses 1 life.");
         wildWestDeck[7].SetUpCard(3, "Showdown", "Textures/Wild West Show/WWS cards/Regolamento di Conti", "All cards may be played as they were BANG!. All BANGs! may be played as they were Missed!.");
         wildWestDeck[8].SetUpCard(3, "Sacagaway", "Textures/Wild West Show/WWS cards/Sacagaway", "All players play with their hands revealed.");
-        wildWestDeck = Shuffle(wildWestDeck);
+        if (PhotonNetwork.IsMasterClient) wildWestDeck = Shuffle(wildWestDeck);
         wildWestDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
         wildWestDeck[9].SetUpCard(3, "Wild West Show", "Textures/Wild West Show/WWS cards/Wild West Show", "The goal of each player becomes: \"Be the last one in play!\"");
         float i = 0.02f * wildWestDeck.Count;
@@ -350,13 +412,16 @@ public class Game : MonoBehaviour
         {
             card.FlipCard();
             card.transform.SetParent(GameArea.transform, false);
-            card.transform.localPosition = new Vector3(-95, i, 0);
+            if (PhotonNetwork.IsMasterClient) card.transform.localPosition = new Vector3(-95, i, 0);
             i -= 0.02f;
         }
+        //if (PhotonNetwork.IsMasterClient) PhotonNetwork.RaiseEvent(WW_DECK_EVENT, GetTransforms(wildWestDeck), new RaiseEventOptions() { Receivers = ReceiverGroup.Others}, SendOptions.SendReliable);
     }
 
+    [PunRPC]
     private void SetUpLootDeck()
     {
+        for (int j = 0; j < 24; j++) lootDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
         lootDeck[0].SetUpLootCard(4, "Shot", "Textures/Gold Rush/Loot cards/Bicchierino", "Any player of your choice restores 1 life.", 1, 0);
         lootDeck[1].SetUpLootCard(4, "Shot", "Textures/Gold Rush/Loot cards/Bicchierino", "Any player of your choice restores 1 life.", 1, 0);
         lootDeck[2].SetUpLootCard(4, "Shot", "Textures/Gold Rush/Loot cards/Bicchierino", "Any player of your choice restores 1 life.", 1, 0);
@@ -381,27 +446,31 @@ public class Game : MonoBehaviour
         lootDeck[21].SetUpLootCard(4, "Lucky Charm", "Textures/Gold Rush/Loot cards/Talismano", "Each time you lose a life, take 1 golden nugget.", 3, 1);
         lootDeck[22].SetUpLootCard(4, "Union Pacific", "Textures/Gold Rush/Loot cards/Unoion Pacific", "Draw 4 cards.", 4, 0);
         lootDeck[23].SetUpLootCard(4, "Rucksack", "Textures/Gold Rush/Loot cards/Zaino", "Pay 2 golden nuggets to restore 1.", 3, 1);
-        lootDeck = Shuffle(lootDeck);
+        if (PhotonNetwork.IsMasterClient) lootDeck = Shuffle(lootDeck);
         float i = 0.02f * lootDeck.Count;
         foreach (Card card in lootDeck)
         {
             card.FlipCard();
             card.transform.SetParent(GameArea.transform, false);
-            card.transform.localPosition = new Vector3(40, i, 0);
+            if (PhotonNetwork.IsMasterClient) card.transform.localPosition = new Vector3(40, i, 0);
             i -= 0.02f;
         }
 
         //dealing loot cards
+        if (!PhotonNetwork.IsMasterClient) return;
         for (int j = 65; j <= 95; j += 15)
         {
             lootDeck[0].transform.localPosition = new Vector3(j, 0, 0);
             lootDeck[0].FlipCard();
             lootDeck.RemoveAt(0);
         }
+        //if (PhotonNetwork.IsMasterClient) PhotonNetwork.RaiseEvent(LOOT_DECK_EVENT, GetTransforms(lootDeck), new RaiseEventOptions() { Receivers = ReceiverGroup.Others}, SendOptions.SendReliable);
     }
 
+    [PunRPC]
     private void SetUpCharacterDeck()
     {
+        for (int j = 0; j < 63; j++) characterDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
         characterDeck[0].SetUpCharacterCard(5, "Bart Cassidy", "Textures/Vanilla/Characters/Bart Cassidy", "Each time he is hit, he draws a card.", 4);
         characterDeck[1].SetUpCharacterCard(5, "Black Jack", "Textures/Vanilla/Characters/Black Jack", "He shows the second card he draws in phase 1. ", 4);
         characterDeck[2].SetUpCharacterCard(5, "Calamity Janet", "Textures/Vanilla/Characters/Calamity Janet", "She may play BANG! as Missed! and vice versa.", 4);
@@ -465,19 +534,22 @@ public class Game : MonoBehaviour
         characterDeck[60].SetUpCharacterCard(5, "Lee van Kliff", "Textures/Wild West Show/Characters/Lee van Klif", "During his turn, he may discard BANG! to repeat an effect of a brown card he just played.", 4);
         characterDeck[61].SetUpCharacterCard(5, "Teren Kill", "Textures/Wild West Show/Characters/Teren Kill", "Each time he would be eliminated, he tests. If it isn't ♠, he stays at 1 life and draws 1.", 3);
         characterDeck[62].SetUpCharacterCard(5, "Youl Grinner", "Textures/Wild West Show/Characters/Youl Grinner", "Before drawing in phase 1, players with more cards in hand than him must give him 1 card of their choice.", 4);
-        characterDeck = Shuffle(characterDeck);
+        if (PhotonNetwork.IsMasterClient) characterDeck = Shuffle(characterDeck);
         float i = 0.02f * characterDeck.Count;
         foreach (Card card in characterDeck)
         {
             card.FlipCard();
             card.transform.SetParent(GameArea.transform, false);
-            card.transform.localPosition = new Vector3(0, i, 100);
+            if (PhotonNetwork.IsMasterClient) card.transform.localPosition = new Vector3(0, i, 100);
             i -= 0.02f;
         }
+        //if (PhotonNetwork.IsMasterClient) PhotonNetwork.RaiseEvent(CHARACTER_DECK_EVENT, GetTransforms(characterDeck), new RaiseEventOptions() { Receivers = ReceiverGroup.Others}, SendOptions.SendReliable);
     }
 
+    [PunRPC]
     private void SetUpRolesDeck()
     {
+        for (int j = 0; j < 8; j++) roleDeck.Add(PhotonNetwork.Instantiate(Card.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Card>());
         roleDeck[0].SetUpCard(6, "Sheriff", "Textures/Vanilla/Roles/Sceriffo", "Kill all Outlaws and Renegades!");
         roleDeck[1].SetUpCard(6, "Outlaw", "Textures/Vanilla/Roles/Fuorilegge", "Kill the Sheriff!");
         roleDeck[2].SetUpCard(6, "Renegade", "Textures/Vanilla/Roles/Rinnegato", "Be the last one in play!");
@@ -493,11 +565,12 @@ public class Game : MonoBehaviour
         {
             card.FlipCard();
             card.transform.SetParent(GameArea.transform, false);
-            card.transform.localPosition = new Vector3(20, i, 100);
+            if (PhotonNetwork.IsMasterClient) card.transform.localPosition = new Vector3(20, i, 100);
             i -= 0.02f;
         }
-    }
 
+        //if (PhotonNetwork.IsMasterClient) PhotonNetwork.RaiseEvent(ROLE_DECK_EVENT, GetTransforms(roleDeck), new RaiseEventOptions() { Receivers = ReceiverGroup.Others}, SendOptions.SendReliable);
+    }
 
     public static List<Card> Shuffle(List<Card> deck)
     {
@@ -515,19 +588,17 @@ public class Game : MonoBehaviour
         return deck;
     }
 
+    [PunRPC]
     private void CreatePlayers()
     {
         for (int i = 0; i < PhotonNetwork.CurrentRoom.PlayerCount; i++) gameRoleDeck.Add(roleDeck[i]);
         gameRoleDeck = Shuffle(gameRoleDeck);
 
-        System.Random rand = new System.Random();
-
         foreach (KeyValuePair<int, Photon.Realtime.Player> player in PhotonNetwork.CurrentRoom.Players)
         {
             Player newPlayerInfo = PhotonNetwork.Instantiate(PlayerInfo.name, new Vector3(0, 0, 0), Quaternion.identity).GetComponent<Player>();
-            newPlayerInfo.SetUpPlayerInfo(characterDeck[0], characterDeck[1], gameRoleDeck[0], false, player.Value.NickName);
+            newPlayerInfo.SetUpPlayerInfo(characterDeck[0], characterDeck[1], gameRoleDeck[0], player.Value);
             players.Add(newPlayerInfo);
-            Debug.Log("Player " + newPlayerInfo.PlayerName + ": " + newPlayerInfo.MainCharacter.CardName + " (" + newPlayerInfo.IsTopOrBottom + ")");
             newPlayerInfo.transform.SetParent(Canvas.instance.transform.Find("PlayerAreas").transform);
             characterDeck[0].FlipCard();
             characterDeck.RemoveAt(0);
@@ -539,6 +610,7 @@ public class Game : MonoBehaviour
         foreach(Player player in players) player.transform.localPosition = GetUIPosition(player);
     }
 
+    [PunRPC]
     private void StartGame()
     {
         foreach (Player pl in players)
@@ -553,9 +625,8 @@ public class Game : MonoBehaviour
         }
         foreach (Player pl in players) if (pl.Role.CardName == "Sheriff") { sheriff = pl; break; }
         activePlayer = sheriff;
-        foreach (Card c in activePlayer.CardsInHand) c.FlipCard();
         turnNumber = 1;
-        TurnManager.instance.DoTurn(activePlayer);
+        //TurnManager.instance.DoTurn(activePlayer);
     }
 
     internal RaycastHit CastRay()
@@ -572,8 +643,7 @@ public class Game : MonoBehaviour
     internal Vector2 GetUIPosition(Player player)
     {
         Vector2 canvasPos;
-        Vector2 screenPoint = GameCamera.WorldToScreenPoint(player.Characters[0].transform.position);
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(Canvas.instance.GetComponent<RectTransform>(), screenPoint, null, out canvasPos);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(Canvas.instance.GetComponent<RectTransform>(), GameCamera.WorldToScreenPoint(player.Characters[0].transform.position), null, out canvasPos);
         return canvasPos;
     }
 
@@ -613,7 +683,7 @@ public class Game : MonoBehaviour
                     activePlayer.RemoveCardFromHand(dragAndDropObject);
                     float x = new System.Random().Next(0, 3000) / 1000f - 1.5f;
                     if (discardDeck.Count > 1) dragAndDropObject.transform.Rotate(new Vector3(0, x, 0));
-                    TargetingSystem.instance.ShowTarget();
+                   ; TargetingSystem.instance.ShowTarget();
                 }
                 else if((dragAndDropObject.transform.localPosition.x < activePlayer.Characters[0].transform.localPosition.x + MAX_X_IN_PLAY && dragAndDropObject.transform.localPosition.x > activePlayer.Characters[0].transform.localPosition.x - MAX_X_IN_PLAY) &&
                     (activePlayer.IsTopOrBottom ? dragAndDropObject.transform.localPosition.z < MAX_Z_IN_PLAY && dragAndDropObject.transform.localPosition.z > MAX_Z_IN_PLAY - 16 : dragAndDropObject.transform.localPosition.z > -MAX_Z_IN_PLAY && dragAndDropObject.transform.localPosition.z < MAX_Z_IN_PLAY + 16) &&
@@ -711,6 +781,14 @@ public class Game : MonoBehaviour
     {
         switch (players.Count)
         {
+            case 2:
+                {
+                    players[0].Characters[0].transform.localPosition = new Vector3(0, 0.1f, MAX_Y);
+                    players[1].Characters[0].transform.localPosition = new Vector3(0, 0.1f, -MAX_Y);
+                    players[0].IsTopOrBottom = true;
+                    players[1].IsTopOrBottom = false;
+                    break;
+                }
             case 4:
                 {
                     players[0].Characters[0].transform.localPosition = new Vector3(-MAX_X / 2, 0.1f, MAX_Y);
@@ -791,6 +869,39 @@ public class Game : MonoBehaviour
                     players[7].IsTopOrBottom = false;
                     break;
                 }
+        }
+    }
+
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+
+    }
+
+    private object[] GetTransforms(List<Card> currentDeck)
+    {
+        object[] transforms = new object[currentDeck.Count * 2];
+        for (int j = 0; j < currentDeck.Count; j ++)
+        {
+            for (int k = 0; k < 2; k++)
+            {
+                if (k % 2 == 0) transforms[j * 2 + k] = currentDeck[j].transform.position;
+                else transforms[j * 2 + k] = currentDeck[j].transform.rotation;
+            }
+
+        }
+        return transforms;
+    }
+
+    private void SetTransforms(List<Card> currentDeck, object[] transforms)
+    {
+        for (int j = 0; j < currentDeck.Count; j++)
+        {
+            for (int k = 0; k < 2; k++)
+            {
+                if (k % 2 == 0) currentDeck[j].transform.position = (Vector3)transforms[j * 2 + k];
+                else currentDeck[j].transform.rotation = (Quaternion)transforms[j * 2 + k];
+            }
+            currentDeck[j].transform.SetParent(GameArea.transform, false);
         }
     }
 }

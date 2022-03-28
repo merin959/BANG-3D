@@ -41,6 +41,17 @@ MonoBehaviour:
   - RespawnSpaceship
   - UpdatePlayerList
   - UUpdatePlayerList
+  - Shuffle
+  - CreateDecks
+  - CreatePlayers
+  - StartGame
+  - SetUpCharacterDeck
+  - SetUpFistfulDeck
+  - SetUpHighNoonDeck
+  - SetUpLootDeck
+  - SetUpPlayingDeck
+  - SetUpRolesDeck
+  - SetUpWildWestDeck
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

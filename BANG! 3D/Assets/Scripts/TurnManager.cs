@@ -15,9 +15,7 @@ public class TurnManager : MonoBehaviour
 
     internal void DoTurn(Player activePlayer)
     {
-        DoPhase1(activePlayer);
-        DoPhase2(activePlayer);
-        DoPhase3(activePlayer);
+        DoPhase1(activePlayer); 
     }
 
     private void DoPhase1(Player activePlayer)
@@ -26,7 +24,6 @@ public class TurnManager : MonoBehaviour
         for (int i = 0; i < 2; i++)
         {
             Card c = Game.instance.cardDeck[0];
-            c.FlipCard();
             activePlayer.DrawCard(c);
             Game.instance.cardDeck.RemoveAt(0);
         }
@@ -36,6 +33,7 @@ public class TurnManager : MonoBehaviour
         activePlayer.DrawCard(cc);
         Game.instance.cardDeck.RemoveAt(0);*/
         //activePlayer.FixCardAngles();
+        DoPhase2(activePlayer);
     }
 
     private void DoPhase2(Player activePlayer)
@@ -44,7 +42,7 @@ public class TurnManager : MonoBehaviour
     }
     private void DoPhase3(Player activePlayer)
     {
-        EndTurn?.Invoke(activePlayer);
+        //EndTurn?.Invoke(activePlayer);
     }
 
 

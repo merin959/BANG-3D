@@ -134,8 +134,10 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
     private void Update()
     {
-        if (PhotonNetwork.IsMasterClient && PhotonNetwork.CurrentRoom.PlayerCount >= 4) playButton.SetActive(true);
+        if (PhotonNetwork.IsMasterClient && PhotonNetwork.CurrentRoom.PlayerCount >= 1 /*4*/) playButton.SetActive(true);
         else playButton.SetActive(false);
+
+        if (Input.GetKeyDown(KeyCode.KeypadEnter) && lobbyPanel.activeSelf) OnClickCreate();
     }
 
     public void OnClickPlayButton()
