@@ -15,6 +15,6 @@ EditorBuildSettings:
     path: Assets/Scenes/LobbyScene.unity
     guid: 6a756f56cff4692409874db598590069
   - enabled: 1
-    path: Assets/Scenes/ConncetToServerScene.unity
+    path: Assets/Scenes/ConnectToServerScene.unity
     guid: 05ccb69f880543c45a44845b011324ea
   m_configObjects: {}

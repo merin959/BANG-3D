@@ -21,6 +21,7 @@ public class ConnectToServer : MonoBehaviourPunCallbacks
             PhotonNetwork.AutomaticallySyncScene = true;
             PhotonNetwork.ConnectUsingSettings();
         }
+        if (usernameInput.text.Length < 3) errorMessage.text = "Nickname needs to have at least 3 characters.";
     }
 
     public override void OnConnectedToMaster()
@@ -32,8 +33,9 @@ public class ConnectToServer : MonoBehaviourPunCallbacks
         Debug.LogWarning($"Failed to connect: {cause}");
     }
 
-    private void Update()
+    public void OnBackClicked()
     {
-        if(Input.GetKeyDown(KeyCode.KeypadEnter)) OnClickConnect();
+        UnityEngine.SceneManagement.SceneManager.LoadScene("MenuScene");
+        PhotonNetwork.Disconnect();
     }
 }

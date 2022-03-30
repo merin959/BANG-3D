@@ -7,10 +7,8 @@ using UnityEngine.UI;
 using Photon.Pun;
 using Photon.Realtime;
 
-public class Card : MonoBehaviourPun, IPunObservable
+public class Card : MonoBehaviourPun, IPunInstantiateMagicCallback
 {
-    PhotonView view;
-
     private int cardType;             // 0 = playing card, 1 = High Noon card, 2 = Fistful card, 3 = Wild West card, 4 = Gold Rush loot card, 5 = character card, 6 = role card
     public int CardType { get { return cardType; } }
     private string cardName;
@@ -24,16 +22,17 @@ public class Card : MonoBehaviourPun, IPunObservable
     public Material backMaterial;
     private string cardDescription;
     private string playingCardValue;
-    private char playingCardColor;
-    private int playingCardType;      // 0 = brown, 1 = blue, 2 = green, 3 = orange
-    private int numberOfLoadTokens;
+    private char? playingCardColor;
+    private int? playingCardType;      // 0 = brown, 1 = blue, 2 = green, 3 = orange
+    private int? numberOfLoadTokens;
     //private Effect cardEffect;
-    private int lootCardCost;
-    private int lootCardType;        // 0 = brown, 1 = black    
-    private int characterCardLives;
-    public int CharacterCardLives { get { return characterCardLives; } }
+    private int? lootCardCost;
+    private int? lootCardType;        // 0 = brown, 1 = black
+    private int? shootingDistance;
+    private int? characterCardLives;
+    public int? CharacterCardLives { get { return characterCardLives; } }
     private bool isFlipped;
-    public bool IsFlipped { get { return isFlipped; } }
+    public bool IsFlipped { get { return isFlipped; } set { isFlipped = value; } }
     private bool canBeMoved;
     public bool CanBeMoved { get { return canBeMoved; } set { canBeMoved = value; } }
 
@@ -43,9 +42,9 @@ public class Card : MonoBehaviourPun, IPunObservable
 
     public string TooltipData { get { return cardName + (cardType == 0 ? " (" + playingCardValue + playingCardColor + ")" : "") + "\n" + cardDescription; } }
 
-    private void Start()
+    public void OnPhotonInstantiate(PhotonMessageInfo info)
     {
-        view = GetComponent<PhotonView>();
+        SetUpCard(info.photonView.InstantiationData);
     }
 
     public void FlipCard()
@@ -54,15 +53,29 @@ public class Card : MonoBehaviourPun, IPunObservable
         transform.Rotate(new Vector3(0, 0, 180));
     }
 
-    public void SetUpCard(int cardType, string cardName, string cardPath, string cardDescription)
+    public void SetUpCard(object[] cardInfo)
     {
+        transform.SetParent(Game.instance.GameArea.transform, false);
         isFlipped = true;
-        this.cardType = cardType;
         CanBeMoved = false;
+        cardType = (int)cardInfo[0];
+        cardName = (string)cardInfo[1];
+        cardImage = Resources.Load<Sprite>((string)cardInfo[2]);
+        cardDescription = (string)cardInfo[3];
+        playingCardValue = (string)cardInfo[4];
+        if ((string)cardInfo[5] == "0") playingCardColor = null; else char.Parse((string)cardInfo[5]);
+        playingCardType = (int?)cardInfo[6];
+        numberOfLoadTokens = (int?)cardInfo[7];
+        lootCardCost = (int?)cardInfo[8];
+        lootCardType = (int?)cardInfo[9];
+        characterCardLives = (int?)cardInfo[10];
+        shootingDistance = (int?)cardInfo[11];
         switch (cardType)
         {
             case 0:
                 {
+                    if (playingCardType == 0) eligibleDestination = "Discard deck";
+                    else eligibleDestination = "In front of a player";
                     //CanBeMoved = true;
                     cardBack = Resources.Load<Sprite>("Textures/Card backs/Playing Card Background");
                     break;
@@ -98,65 +111,18 @@ public class Card : MonoBehaviourPun, IPunObservable
                     break;
                 }
         }
-        this.cardName = cardName;
-        this.cardImage = Resources.Load<Sprite>(cardPath);
-        this.cardDescription = cardDescription;
         SetUpCardTexture();
     }
 
-    public void SetUpPlayingCard(int cardType, string cardName, string cardPath, string cardDescription, string playingCardValue, char playingCardColor, int playingCardType)
-    {
-        SetUpCard(cardType, cardName, cardPath, cardDescription);
-        this.playingCardValue = playingCardValue;
-        this.playingCardColor = playingCardColor;
-        this.playingCardType = playingCardType;
-        if (playingCardType == 0) eligibleDestination = "Discard deck";
-        else eligibleDestination = "In front of a player";
-    }
-
-    public void SetUpLootCard(int cardType, string cardName, string cardPath, string cardDescription, int lootCardCost, int lootCardType)
-    {
-        SetUpCard(cardType, cardName, cardPath, cardDescription);
-        this.lootCardCost = lootCardCost;
-        this.lootCardType = lootCardType;
-    }
-
-    public void SetUpCharacterCard(int cardType, string cardName, string cardPath, string cardDescription, int characterCardLives)
-    {
-        SetUpCard(cardType, cardName, cardPath, cardDescription);
-        this.characterCardLives = characterCardLives;
-    }
-
-    public void SetUpADPlayingCard(int cardType, string cardName, string cardPath, string cardDescription, string playingCardValue, char playingCardColor, int playingCardType, int numberOfLoadTokens)
-    {
-        SetUpPlayingCard(cardType, cardName, cardPath, cardDescription, playingCardValue, playingCardColor, playingCardType);
-        this.numberOfLoadTokens = numberOfLoadTokens;
-    }
-
-
     private void SetUpCardTexture()
     {
-        this.transform.Find("Front").GetComponent<MeshRenderer>().material.mainTextureScale = frontMaterial.mainTextureScale;
-        this.transform.Find("Back").GetComponent<MeshRenderer>().material.mainTextureScale = backMaterial.mainTextureScale;
+        transform.Find("Front").GetComponent<MeshRenderer>().material.mainTextureScale = frontMaterial.mainTextureScale;
+        transform.Find("Back").GetComponent<MeshRenderer>().material.mainTextureScale = backMaterial.mainTextureScale;
 
-        this.transform.Find("Front").GetComponent<MeshRenderer>().material.mainTextureOffset = frontMaterial.mainTextureOffset;
-        this.transform.Find("Back").GetComponent<MeshRenderer>().material.mainTextureOffset = backMaterial.mainTextureOffset;
+        transform.Find("Front").GetComponent<MeshRenderer>().material.mainTextureOffset = frontMaterial.mainTextureOffset;
+        transform.Find("Back").GetComponent<MeshRenderer>().material.mainTextureOffset = backMaterial.mainTextureOffset;
 
-        this.transform.Find("Front").GetComponent<MeshRenderer>().material.SetTexture("_MainTex", cardImage.texture);
-        this.transform.Find("Back").GetComponent<MeshRenderer>().material.SetTexture("_MainTex", cardBack.texture);
-    }
-
-    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
-    {
-        if (stream.IsWriting)
-        {
-            stream.SendNext(transform.position);
-            stream.SendNext(transform.rotation);
-        }
-        else if (stream.IsReading)
-        {
-            transform.position = (Vector3)stream.ReceiveNext();
-            transform.rotation = (Quaternion)stream.ReceiveNext();
-        }
+        transform.Find("Front").GetComponent<MeshRenderer>().material.SetTexture("_MainTex", cardImage.texture);
+        transform.Find("Back").GetComponent<MeshRenderer>().material.SetTexture("_MainTex", cardBack.texture);
     }
 }

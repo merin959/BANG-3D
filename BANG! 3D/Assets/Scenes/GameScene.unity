@@ -164,7 +164,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &267827931
 GameObject:
@@ -332,7 +332,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &538134710
 MonoBehaviour:
@@ -640,6 +640,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1044480469}
   - component: {fileID: 1044480468}
+  - component: {fileID: 1044480470}
   m_Layer: 0
   m_Name: CardDatabase
   m_TagString: Untagged
@@ -681,8 +682,20 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 7
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1044480470
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1044480467}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7283b8c2d06eb64a89a61b52ea9ffc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1141699961
 GameObject:
   m_ObjectHideFlags: 0
@@ -747,7 +760,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1637292735
 GameObject:
@@ -1172,6 +1185,14 @@ PrefabInstance:
     - target: {fileID: 6262357545676830935, guid: 830a5cf6bf11e8b43bcbb75c3008efc5, type: 3}
       propertyPath: m_Name
       value: Tooltip
+      objectReference: {fileID: 0}
+    - target: {fileID: 6262357546288287253, guid: 830a5cf6bf11e8b43bcbb75c3008efc5, type: 3}
+      propertyPath: m_FontData.m_Font
+      value: 
+      objectReference: {fileID: 12800000, guid: 20b7c83bec7dd464daa86d80b8047135, type: 3}
+    - target: {fileID: 6262357546288287253, guid: 830a5cf6bf11e8b43bcbb75c3008efc5, type: 3}
+      propertyPath: m_FontData.m_FontSize
+      value: 24
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 830a5cf6bf11e8b43bcbb75c3008efc5, type: 3}

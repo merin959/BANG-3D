@@ -33,17 +33,11 @@ public class LobbyManager : MonoBehaviourPunCallbacks
 
     public void OnClickCreate()
     {
-        if (roomInputField.text.Length == 6)
-        {
-            foreach (char ch in roomInputField.text) { if (!char.IsLetterOrDigit(ch)) { errorMessage.text = "Code cannot contain any special characters."; return; } }
+        if (roomInputField.text == "") { errorMessage.text = "Code cannot be empty."; return; }
+        foreach (char ch in roomInputField.text) { if (!char.IsLetterOrDigit(ch)) { errorMessage.text = "Code cannot contain any special characters."; return; } }
 
-            errorMessage.text = "";
-            PhotonNetwork.CreateRoom(roomInputField.text.ToUpper(), new RoomOptions() { MaxPlayers = 8 });
-        }
-        else
-        {
-            errorMessage.text = "Code needs to be 6 characters long.";
-        }
+        errorMessage.text = "";
+        PhotonNetwork.CreateRoom(roomInputField.text, new RoomOptions() { MaxPlayers = 8, });
     }
 
     public override void OnJoinedRoom()
@@ -144,6 +138,13 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     {
         PhotonNetwork.CurrentRoom.IsOpen = false;
         PhotonNetwork.CurrentRoom.IsVisible = false;
+        PhotonNetwork.AutomaticallySyncScene = true;
         PhotonNetwork.LoadLevel("GameScene");
+    }
+
+    public void OnBackClicked()
+    {
+        UnityEngine.SceneManagement.SceneManager.LoadScene("MenuScene");
+        PhotonNetwork.Disconnect();
     }
 }

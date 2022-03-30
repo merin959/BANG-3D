@@ -7,6 +7,7 @@ public class TurnManager : MonoBehaviour
 {
     public static TurnManager instance;
     public event Action<Player> EndTurn;
+
     void Start()
     {
         instance = this;
