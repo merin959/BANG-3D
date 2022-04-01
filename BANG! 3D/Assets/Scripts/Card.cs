@@ -34,7 +34,7 @@ public class Card : MonoBehaviourPun, IPunInstantiateMagicCallback
     private bool isFlipped;
     public bool IsFlipped { get { return isFlipped; } set { isFlipped = value; } }
     private bool canBeMoved;
-    public bool CanBeMoved { get { return canBeMoved; } set { canBeMoved = value; } }
+    public bool CanBeMoved { get { return canBeMoved && photonView.IsMine; } set { canBeMoved = value; } }
 
     private string eligibleDestination;
 
@@ -63,7 +63,7 @@ public class Card : MonoBehaviourPun, IPunInstantiateMagicCallback
         cardImage = Resources.Load<Sprite>((string)cardInfo[2]);
         cardDescription = (string)cardInfo[3];
         playingCardValue = (string)cardInfo[4];
-        if ((string)cardInfo[5] == "0") playingCardColor = null; else char.Parse((string)cardInfo[5]);
+        if ((string)cardInfo[5] == "0") playingCardColor = null; else playingCardColor = char.Parse((string)cardInfo[5]);
         playingCardType = (int?)cardInfo[6];
         numberOfLoadTokens = (int?)cardInfo[7];
         lootCardCost = (int?)cardInfo[8];
@@ -76,7 +76,7 @@ public class Card : MonoBehaviourPun, IPunInstantiateMagicCallback
                 {
                     if (playingCardType == 0) eligibleDestination = "Discard deck";
                     else eligibleDestination = "In front of a player";
-                    //CanBeMoved = true;
+                    CanBeMoved = true;
                     cardBack = Resources.Load<Sprite>("Textures/Card backs/Playing Card Background");
                     break;
                 }
@@ -124,5 +124,10 @@ public class Card : MonoBehaviourPun, IPunInstantiateMagicCallback
 
         transform.Find("Front").GetComponent<MeshRenderer>().material.SetTexture("_MainTex", cardImage.texture);
         transform.Find("Back").GetComponent<MeshRenderer>().material.SetTexture("_MainTex", cardBack.texture);
+    }
+
+    public void ChangeOwner(Photon.Realtime.Player player)
+    {
+        photonView.TransferOwnership(player);
     }
 }

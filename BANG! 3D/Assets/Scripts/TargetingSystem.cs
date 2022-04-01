@@ -3,13 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Photon.Pun;
 
-public class TargetingSystem : MonoBehaviour
+public class TargetingSystem : MonoBehaviourPun
 {
-    public event Action<Player> ReturnTargetedCard;
+    public event Action<Player, Card> ReturnTargetedCard;
     public static TargetingSystem instance;
     private RectTransform target;
     private RectTransform gun;
+
+    private Card targettingCard;
+
+    private bool isActive;
+    public bool IsActive => isActive;
 
     private void Awake()
     {
@@ -41,12 +47,15 @@ public class TargetingSystem : MonoBehaviour
 
     private void ProcessTargetting(Card targetedCard)
     {
-        ReturnTargetedCard?.Invoke(GetPlayerFromCharacter(targetedCard));
+        ReturnTargetedCard?.Invoke(GetPlayerFromCharacter(targetedCard), targettingCard);
     }
 
-    public void ShowTarget()
+    public void ShowTarget(Card card)
     {
         gameObject.SetActive(true);
+        isActive = true;
+        targettingCard = card;
+
         target.position = Input.mousePosition;
         gun.position = Game.instance.activePlayer.transform.position;
         //gun type
@@ -56,6 +65,10 @@ public class TargetingSystem : MonoBehaviour
 
     public void HideTarget()
     {
+        isActive = false;
+        targettingCard = null;
+        try { foreach (Player p in Game.instance.players) p.photonView.RPC("SetUpUI", RpcTarget.AllBuffered); }
+        catch { }
         gameObject.SetActive(false);
     }
 

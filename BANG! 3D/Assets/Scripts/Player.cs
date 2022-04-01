@@ -19,7 +19,7 @@ public class Player : MonoBehaviourPun, IPunInstantiateMagicCallback     //fix c
         {
             lifes = value;
             //vyøešit vedle atd...
-            transform.Find("NumberOfLives").GetComponent<Text>().text = lifes + "";
+            photonView.RPC("SetUpUI", RpcTarget.AllBuffered);
         }
     }
     public int? MaximumCardsInHand { get { return (mainCharacter.CardName == "Big Spencer" && lifes > 5) ? 5 : lifes; } }
@@ -45,7 +45,7 @@ public class Player : MonoBehaviourPun, IPunInstantiateMagicCallback     //fix c
         set
         {
             gold = value;
-            transform.Find("NumberOfGold").GetComponent<Text>().text = gold.ToString();
+            photonView.RPC("SetUpUI", RpcTarget.AllBuffered);
         }
     }
     private Vector3 cardPositions;
@@ -61,15 +61,31 @@ public class Player : MonoBehaviourPun, IPunInstantiateMagicCallback     //fix c
     private float MAX_X_IN_PLAY = 17.4f;
     private float MAX_Z_IN_PLAY = 28.5f;
 
+    private bool canClick;
+    public bool CanClick
+    {
+        get { return canClick; }
+        set { canClick = value; }
+    }
+
+    private bool hasActivatedEasterEgg;
+    public bool HasActivatedEasterEgg
+    {
+        get { return hasActivatedEasterEgg; }
+        set { hasActivatedEasterEgg = value; }
+    }
+
     public void OnPhotonInstantiate(PhotonMessageInfo info)
     {
         SetUpInfo(info.photonView.InstantiationData);
+        HasActivatedEasterEgg = false;
     }
 
     [PunRPC]
     public void SetUpInfo(object[] datas)
     {
         int ii = (int)datas[2];
+        canClick = false;
         cardsInHand = new List<Card>();
         cardsInPlay = new List<Card>();
         transform.SetParent(Canvas.instance.transform.Find("PlayerAreas").transform, false);
@@ -83,8 +99,11 @@ public class Player : MonoBehaviourPun, IPunInstantiateMagicCallback     //fix c
 
         IsTopOrBottom = (bool)datas[0];
 
-        transform.Find("PlayerName").GetComponent<Text>().text = PlayerName;
         if (role.CardName == "Sheriff") transform.Find("PlayerName").GetComponent<Text>().color = new Color(227, 182, 0);
+
+        transform.Find("PlayerName").GetComponent<Text>().text = PlayerName;
+        transform.Find("NumberOfGold").GetComponent<Text>().text = gold.ToString();
+        transform.Find("NumberOfLives").GetComponent<Text>().text = lifes + "";
 
         if (!isTopOrBottom)
         {
@@ -94,27 +113,21 @@ public class Player : MonoBehaviourPun, IPunInstantiateMagicCallback     //fix c
             transform.Find("BulletImage").GetComponent<RectTransform>().localPosition = new Vector3(transform.Find("BulletImage").GetComponent<RectTransform>().localPosition.x, -transform.Find("BulletImage").GetComponent<RectTransform>().localPosition.y, transform.Find("BulletImage").GetComponent<RectTransform>().localPosition.z);
             transform.Find("GoldImage").GetComponent<RectTransform>().localPosition = new Vector3(transform.Find("GoldImage").GetComponent<RectTransform>().localPosition.x, -transform.Find("GoldImage").GetComponent<RectTransform>().localPosition.y, transform.Find("GoldImage").GetComponent<RectTransform>().localPosition.z);
         }
-
-        Debug.Log(PlayerName + ": " + Role.CardName + " (" + mainCharacter.CardName + " - " + Lifes + ")");
     }
 
     public void DrawCard(Card drawnCard)
     {
         cardsInHand.Add(drawnCard);
-        //Debug.Log("Old owner: " + drawnCard.CardName + " (" + drawnCard.photonView.Owner + ")");
-        //base.photonView.RequestOwnership();
-        /*drawnCard.photonView.TransferOwnership(playerAccount);
-        if (drawnCard.photonView.IsMine) drawnCard.FlipCard();
-        drawnCard.FlipCard();*/
-        //Debug.Log("New owner: " + drawnCard.CardName + " (" + drawnCard.photonView.Owner + ")");
+        if (photonView.IsMine) drawnCard.FlipCard();
         SetUpCardsInHand();
+        SetUpCardsInPlay();
     }
 
     public void AddCardToPlay(Card cardToBeMovedToHand)
     {
         cardsInPlay.Add(cardToBeMovedToHand);
+        SetUpCardsInHand();
         SetUpCardsInPlay();
-        //foreach (Card c in CardsInHand) c.transform.eulerAngles = new Vector3(c.transform.eulerAngles.x, -c.transform.eulerAngles.y, c.transform.eulerAngles.z);
     }
 
     public void RemoveCardFromHand(Card cardToRemove)
@@ -123,37 +136,26 @@ public class Player : MonoBehaviourPun, IPunInstantiateMagicCallback     //fix c
         SetUpCardsInHand();
     }
 
+    [PunRPC]
     internal void SetUpCardsInHand()
     {
-        //int j = 0;
-        for (int i = 0; i < CardsInHand.Count; i++)
-        {
-            CardsInHand[i].transform.eulerAngles = new Vector3(cardsInHand[i].transform.eulerAngles.x, 0, cardsInHand[i].transform.eulerAngles.z);
-            CardsInHand[i].transform.localPosition = new Vector3(
-               Characters[0].transform.localPosition.x + (CardsInHand.Count % 2 == 0 ? 2.5f : 0) + (i - CardsInHand.Count / 2) * 5f,
-               (i - CardsInHand.Count / 2) * 0.01f,
-               Characters[0].transform.localPosition.z > 0 ?
-               (CardsInHand.Count % 2 == 0 ? Characters[0].transform.localPosition.z - 8f + Math.Abs(i >= 0 ? i + 1 : i) * 0.5f : Characters[0].transform.localPosition.z - 8f + Math.Abs(i) * 0.5f) :
-               CardsInHand.Count % 2 == 0 ? Characters[0].transform.localPosition.z + 8f - Math.Abs(i >= 0 ? i + 1 : i) * 0.5f : Characters[0].transform.localPosition.z + 8f - Math.Abs(i) * 0.5f);
-        }
-
-
-        /*for (int i = -CardsInHand.Count / 2 + 1; i < CardsInHand.Count / 2 + CardsInHand.Count % 2 + 1; i++)
+        int j = 0;
+        for (int i = -CardsInHand.Count / 2; i < CardsInHand.Count / 2 + CardsInHand.Count % 2; i++)
         {
             cardsInHand[j].transform.eulerAngles = new Vector3(cardsInHand[j].transform.eulerAngles.x, 0, cardsInHand[j].transform.eulerAngles.z);
             CardsInHand[j].transform.localPosition = new Vector3(
                 Characters[0].transform.localPosition.x + (CardsInHand.Count % 2 == 0 ? 2.5f : 0) + i * 5f,
                 j * 0.01f,
                 Characters[0].transform.localPosition.z > 0 ?
-                (CardsInHand.Count % 2 == 0 ? Characters[0].transform.localPosition.z - 8f  + Math.Abs(i >= 0 ? i + 1: i) * 0.5f: Characters[0].transform.localPosition.z - 8f + Math.Abs(i) * 0.5f) :
-                CardsInHand.Count % 2 == 0 ? Characters[0].transform.localPosition.z + 8f - Math.Abs(i >= 0 ? i + 1: i) * 0.5f : Characters[0].transform.localPosition.z + 8f - Math.Abs(i) * 0.5f);
-            /*if (!isTopOrBottom) CardsInHand[j].transform.Rotate(0, (CardsInHand.Count % 2 == 0 ? 3.5f : 0) - i * 5f + 180, 0);
-            els CardsInHand[j].transform.Rotate(0, (CardsInHand.Count % 2 == 0 ? -3.5f : 0) + i * 5f, 0);
+                (CardsInHand.Count % 2 == 0 ? Characters[0].transform.localPosition.z - 8f + Math.Abs(i >= 0 ? i + 1 : i) * 0.5f : Characters[0].transform.localPosition.z - 8f + Math.Abs(i) * 0.5f) :
+                CardsInHand.Count % 2 == 0 ? Characters[0].transform.localPosition.z + 8f - Math.Abs(i >= 0 ? i + 1 : i) * 0.5f : Characters[0].transform.localPosition.z + 8f - Math.Abs(i) * 0.5f);
+            if (isTopOrBottom) CardsInHand[j].transform.Rotate(0, CardsInHand[j].IsFlipped ? -((CardsInHand.Count % 2 == 0 ? 3.5f : 0) + i * 5f + 180) : ((CardsInHand.Count % 2 == 0 ? 3.5f : 0) + i * 5f + 180), 0);
+            else CardsInHand[j].transform.Rotate(0, CardsInHand[j].IsFlipped ? -((CardsInHand.Count % 2 == 0 ? -3.5f : 0) - i * 5f) : ((CardsInHand.Count % 2 == 0 ? -3.5f : 0) - i * 5f), 0);
             j++;
-        }*/
-        SetUpCardsInPlay();
+        }
     }
 
+    [PunRPC]
     internal void SetUpCardsInPlay()
     {
         for (int i = 0; i < CardsInPlay.Count; i++)
@@ -163,6 +165,15 @@ public class Player : MonoBehaviourPun, IPunInstantiateMagicCallback     //fix c
                 i * 0.01f,
                 IsTopOrBottom ? Characters[0].transform.localPosition.z - MAX_Z_IN_PLAY : Characters[0].transform.localPosition.z + MAX_Z_IN_PLAY
                 );
+            CardsInPlay[i].transform.rotation = Quaternion.identity;
         }
+    }
+
+    [PunRPC]
+    public void SetUpUI()
+    {
+        transform.Find("PlayerName").GetComponent<Text>().text = PlayerName;
+        transform.Find("NumberOfGold").GetComponent<Text>().text = gold.ToString();
+        transform.Find("NumberOfLives").GetComponent<Text>().text = lifes + "";
     }
 }

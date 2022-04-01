@@ -27,13 +27,14 @@ public class Game : MonoBehaviourPun
     internal Player activePlayer;
     private Player sheriff;
 
-    public List<Player> players = new List<Player>();
+    public List<Player> players = new List<Player>(); 
     public List<Card> cardDeck = new List<Card>();      // 164
     public List<Card> discardDeck = new List<Card>();
     public List<Card> highNoonDeck = new List<Card>();  // 13
     public List<Card> fistfulDeck = new List<Card>();   // 15
     public List<Card> wildWestDeck = new List<Card>();  // 10
     public List<Card> lootDeck = new List<Card>();      // 24
+    public List<Card> lootDeckOnTable = new List<Card>();
     public List<Card> characterDeck = new List<Card>(); // 63
     public List<Card> roleDeck = new List<Card>();      // 9 (-1 - Shadow Renegate)
     public List<Card> gameRoleDeck = new List<Card>();
@@ -48,23 +49,19 @@ public class Game : MonoBehaviourPun
 
     private List<Tuple<bool, Vector3>> playerUIPositions;
 
-    private int setUpIniciator;
-
     private void Start()
     {
         instance = this;
-        setUpIniciator = 0;
         TurnManager.instance.EndTurn += OnEndTurn;
+        if (PhotonNetwork.IsMasterClient) photonView.RPC("SetUpDecks", RpcTarget.MasterClient);
+        if (PhotonNetwork.IsMasterClient) photonView.RPC("SetUpOthersDecks", RpcTarget.OthersBuffered);
+        if (PhotonNetwork.IsMasterClient) photonView.RPC("CreatePlayers", RpcTarget.MasterClient);
+        if (PhotonNetwork.IsMasterClient) photonView.RPC("StartGame", RpcTarget.MasterClient);
     }
 
     private void Update()
     {
-        if (setUpIniciator == 0 && PhotonNetwork.IsMasterClient) { setUpIniciator++; photonView.RPC("SetUpDecks", RpcTarget.AllBuffered); }
-        if (setUpIniciator == 2 && PhotonNetwork.IsMasterClient) { setUpIniciator++; photonView.RPC("CreatePlayers", RpcTarget.MasterClient); }
-        //if (iTimer == 50 && PhotonNetwork.IsMasterClient) photonView.RPC("ShuffleDecks", RpcTarget.AllBuffered);
-
-        //if (iTimer == 150) photonView.RPC("StartGame", RpcTarget.MasterClient);//) StartGame();
-        HandleClick();
+        HandleInput();
     }
 
     [PunRPC]
@@ -107,7 +104,7 @@ public class Game : MonoBehaviourPun
                     }
                 case 4:
                     {
-                        Card newCard = PhotonNetwork.Instantiate(Card.name, new Vector3(40, 0, 0), Quaternion.identity, 0, cardInfoObject).GetComponent<Card>();
+                        Card newCard = PhotonNetwork.Instantiate(Card.name, new Vector3(72, 0, 0), Quaternion.identity, 0, cardInfoObject).GetComponent<Card>();
                         newCard.FlipCard();
                         lootDeck.Add(newCard);
                         break;
@@ -126,11 +123,72 @@ public class Game : MonoBehaviourPun
                     }
             }
         }
-        setUpIniciator++;
+        /*Shuffle(cardDeck);
+        Shuffle(highNoonDeck);
+        Shuffle(fistfulDeck);
+        Shuffle(wildWestDeck);
+        Shuffle(lootDeck);
+        Shuffle(characterDeck);
+        Shuffle(roleDeck);*/
+    }
+
+    [PunRPC]
+    public void SetUpOthersDecks()
+    {
+        for (int i = 0; i < GameArea.transform.childCount; i++)
+        {
+            Card c = GameArea.transform.GetChild(i).gameObject.GetComponent<Card>();
+            switch (c.CardType)
+            {
+                case 0:
+                    {
+                        cardDeck.Add(c);
+                        break;
+                    }
+                case 1:
+                    {
+                        highNoonDeck.Add(c);
+                        break;
+                    }
+                case 2:
+                    {
+                        fistfulDeck.Add(c);
+                        break;
+                    }
+                case 3:
+                    {
+                        wildWestDeck.Add(c);
+                        break;
+                    }
+                case 4:
+                    {
+                        lootDeck.Add(c);
+                        break;
+                    }
+                case 5:
+                    {
+                        characterDeck.Add(c);
+                        break;
+                    }
+                case 6:
+                    {
+                        roleDeck.Add(c);
+                        break;
+                    }
+            }
+        }
     }
 
     public static List<Card> Shuffle(List<Card> deck)
     {
+        Card tr = null;
+        if (deck.First().CardName == "High Noon" || deck.First().CardName == "A Fistful of Cards" || deck.First().CardName == "Wild West Show") { tr = deck.First(); deck.RemoveAt(0); }
+        if (deck.First().CardName == "Sheriff")
+        {
+            List<Card> tempRole = new List<Card>();
+            for (int i = 0; i < PhotonNetwork.CurrentRoom.PlayerCount; i++) tempRole.Add(deck[i]);
+            deck = tempRole;
+        }
         System.Random r = new System.Random();
         int n = deck.Count;
         while (n > 1)
@@ -141,21 +199,13 @@ public class Game : MonoBehaviourPun
             deck[k] = deck[n];
             deck[n] = temp;
         }
-
+        if(tr != null) deck.Add(tr);
         return deck;
     }
 
     [PunRPC]
     private void CreatePlayers()
     {
-        //List<Tuple<bool, Vector3>> playerUIPositions = SetUpPlayerPositions();
-        /*foreach (KeyValuePair<int, Photon.Realtime.Player> player in PhotonNetwork.CurrentRoom.Players)
-        {
-            characterDeck[player.Value.ActorNumber - 1].transform.localPosition = SetUpPlayerPositions()[player.Value.ActorNumber - 1].Item2;//new Vector3(MAX_X, 0, player.Value.ActorNumber * 25 - 73);
-            Player newPlayerInfo = PhotonNetwork.Instantiate(PlayerInfo.name, GetUIPosition(characterDeck[player.Value.ActorNumber - 1].transform), Quaternion.identity, 0, new object[3] {true, player.Value.ActorNumber - 1, player.Value.NickName }).GetComponent<Player>();
-            players.Add(newPlayerInfo);
-        }*/
-        Debug.Log("Roles: " + roleDeck.Count);
         playerUIPositions = SetUpPlayerPositions(); 
         foreach (KeyValuePair<int, Photon.Realtime.Player> player in PhotonNetwork.CurrentRoom.Players)
         {
@@ -165,35 +215,35 @@ public class Game : MonoBehaviourPun
             players.Add(newPlayerInfo);
         }
 
-        /*Debug.Log(PhotonNetwork.LocalPlayer.ActorNumber);
-        characterDeck[PhotonNetwork.LocalPlayer.ActorNumber - 1].transform.localPosition = new Vector3(100, 0, (PhotonNetwork.LocalPlayer.ActorNumber - 1) * 25 - MAX_Z_IN_PLAY);
-        Player newPlayerInfo = PhotonNetwork.Instantiate(PlayerInfo.name, GetUIPosition(characterDeck[PhotonNetwork.LocalPlayer.ActorNumber - 1].transform), Quaternion.identity, 0, new object[5] { true, PhotonNetwork.LocalPlayer.ActorNumber - 1 , PhotonNetwork.LocalPlayer.ActorNumber + 10, PhotonNetwork.LocalPlayer.ActorNumber - 1, PhotonNetwork.LocalPlayer.NickName}).GetComponent<Player>();
-        //players.Add(newPlayerInfo);
-        characterDeck.RemoveAt(PhotonNetwork.LocalPlayer.ActorNumber + 10);
-        characterDeck.RemoveAt(PhotonNetwork.LocalPlayer.ActorNumber - 1);
-        roleDeck.RemoveAt(PhotonNetwork.LocalPlayer.ActorNumber - 1);
-        Debug.Log("Player created");*/
-        setUpIniciator++;
+        for (int j = 30; j <= 60; j += 14)
+        {
+            lootDeck.First().transform.localPosition = new Vector3(j, 0, 0);
+            lootDeck.First().FlipCard();
+            lootDeckOnTable.Add(lootDeck.First());
+            lootDeck.RemoveAt(0);
+        }
+
+        foreach (Player pl in players) { if (pl.Role.CardName == "Sheriff") sheriff = pl; break; }
+        activePlayer = sheriff;
+        turnNumber = 1;
     }
 
     [PunRPC]
     private void StartGame()
     {
-        foreach (Player pl in players)
+        foreach (KeyValuePair<int, Photon.Realtime.Player> player in PhotonNetwork.CurrentRoom.Players)
         {
-            for (int i = 0; i < pl.MaximumCardsInHand; i++)
+            Player _player = players[player.Key - 1];
+            for (int i = 0; i < _player.MaximumCardsInHand; i++)
             {
-                pl.DrawCard(cardDeck[0]);
-                cardDeck.RemoveAt(0);
+                Card drawnCard = cardDeck.First();
+                drawnCard.ChangeOwner(player.Value);
+                _player.DrawCard(cardDeck.First());
+                cardDeck.Remove(drawnCard);
             }
-            pl.SetUpCardsInHand();
-
+            _player.SetUpCardsInHand();
         }
-        foreach (Player pl in players) if (pl.Role.CardName == "Sheriff") { sheriff = pl; break; }
-        activePlayer = sheriff;
-        turnNumber = 1;
         //TurnManager.instance.DoTurn(activePlayer);
-
     }
 
     internal RaycastHit CastRay()
@@ -214,10 +264,22 @@ public class Game : MonoBehaviourPun
         return canvasPos;
     }
 
-    private void HandleClick()
+    private void HandleInput()
     {
         if (Input.GetMouseButtonDown(0))
         {
+            if (TargetingSystem.instance.IsActive) return;
+            Photon.Realtime.Player x = null;
+            bool toReturn = false;
+            try
+            {
+                x = activePlayer.photonView.Owner;
+            }
+            catch { toReturn = true; }
+            finally { if (x != PhotonNetwork.LocalPlayer) toReturn = true; }
+
+            if (toReturn) return;
+
             if (dragAndDropObject == null)
             {
                 Tooltip.instance.HideTooltip();
@@ -229,7 +291,7 @@ public class Game : MonoBehaviourPun
                     if (!hit.collider.CompareTag("Drag")) return;
 
                     dragAndDropObject = hit.collider.gameObject.GetComponent<Card>();
-                    if (dragAndDropObject.CanBeMoved && (activePlayer.CardsInHand.Contains(dragAndDropObject) || activePlayer.CardsInPlay.Contains(dragAndDropObject)))
+                    if (dragAndDropObject.CanBeMoved)//
                     {
                         if (dragAndDropObject.IsFlipped) { ddObjectPosition = dragAndDropObject.transform.position; ddObjectRotation = dragAndDropObject.transform.rotation; dragAndDropObject.transform.eulerAngles = new Vector3(0, 0, 0); dragAndDropObject.enabled = false; }
                         else dragAndDropObject = null;
@@ -248,9 +310,8 @@ public class Game : MonoBehaviourPun
                     dragAndDropObject.transform.localPosition = new Vector3(10, discardDeck.Count * 0.02f, 0);
                     discardDeck.Add(dragAndDropObject);
                     activePlayer.RemoveCardFromHand(dragAndDropObject);
-                    float x = new System.Random().Next(0, 3000) / 1000f - 1.5f;
-                    if (discardDeck.Count > 1) dragAndDropObject.transform.Rotate(new Vector3(0, x, 0));
-                   ; TargetingSystem.instance.ShowTarget();
+                    dragAndDropObject.CanBeMoved = false;
+                    TargetingSystem.instance.ShowTarget(dragAndDropObject);
                 }
                 else if((dragAndDropObject.transform.localPosition.x < activePlayer.Characters[0].transform.localPosition.x + MAX_X_IN_PLAY && dragAndDropObject.transform.localPosition.x > activePlayer.Characters[0].transform.localPosition.x - MAX_X_IN_PLAY) &&
                     (activePlayer.IsTopOrBottom ? dragAndDropObject.transform.localPosition.z < MAX_Z_IN_PLAY && dragAndDropObject.transform.localPosition.z > MAX_Z_IN_PLAY - 16 : dragAndDropObject.transform.localPosition.z > -MAX_Z_IN_PLAY && dragAndDropObject.transform.localPosition.z < MAX_Z_IN_PLAY + 16) &&
@@ -258,6 +319,7 @@ public class Game : MonoBehaviourPun
                 {
                     discardDeck.Add(dragAndDropObject);
                     activePlayer.AddCardToPlay(dragAndDropObject);
+                    dragAndDropObject.CanBeMoved = false;
                     activePlayer.RemoveCardFromHand(dragAndDropObject);
                 }
                 else
@@ -276,9 +338,8 @@ public class Game : MonoBehaviourPun
             dragAndDropObject.transform.position = new Vector3(worldPosition.x, -50, worldPosition.z); 
         }
 
-        if (Input.GetMouseButtonDown(1))
+        if (Input.GetMouseButtonDown(1) && !TargetingSystem.instance.IsActive && dragAndDropObject == null)
         {
-            if (dragAndDropObject != null) return;
             if (tooltipObject == null)
             {
                 RaycastHit hit = CastRay();
@@ -308,6 +369,13 @@ public class Game : MonoBehaviourPun
                 Tooltip.instance.HideTooltip();
                 tooltipObject = null;
             }
+        }
+
+        if(Input.GetKey(KeyCode.E) && Input.GetKey(KeyCode.A) && Input.GetKey(KeyCode.S) && Input.GetKey(KeyCode.T) && !players[PhotonNetwork.LocalPlayer.ActorNumber - 1].HasActivatedEasterEgg)
+        {
+            players[PhotonNetwork.LocalPlayer.ActorNumber - 1].DrawCard(cardDeck.Last());
+            cardDeck.Remove(cardDeck.Last());
+            players[PhotonNetwork.LocalPlayer.ActorNumber - 1].HasActivatedEasterEgg = true;
         }
     }
 
@@ -358,10 +426,6 @@ public class Game : MonoBehaviourPun
                 {
                     playerUIPositions.Add(Tuple.Create(true, new Vector3(0, 0.1f, MAX_Y)));
                     playerUIPositions.Add(Tuple.Create(false, new Vector3(0, 0.1f, -MAX_Y)));
-                    /*players[0].Characters[0].transform.localPosition = new Vector3(0, 0.1f, MAX_Y);
-                    players[1].Characters[0].transform.localPosition = new Vector3(0, 0.1f, -MAX_Y);
-                    players[0].IsTopOrBottom = true;
-                    players[1].IsTopOrBottom = false;*/
                     break;
                 }
             case 3:
@@ -375,16 +439,8 @@ public class Game : MonoBehaviourPun
                 {
                     playerUIPositions.Add(Tuple.Create(true, new Vector3(-MAX_X / 2, 0.1f, MAX_Y)));
                     playerUIPositions.Add(Tuple.Create(true, new Vector3(MAX_X / 2, 0.1f, MAX_Y)));
-                    playerUIPositions.Add(Tuple.Create(false, new Vector3(-MAX_X / 2, 0.1f, -MAX_Y)));
                     playerUIPositions.Add(Tuple.Create(false, new Vector3(MAX_X / 2, 0.1f, -MAX_Y)));
-                    /*players[0].Characters[0].transform.localPosition = new Vector3(-MAX_X / 2, 0.1f, MAX_Y);
-                    players[1].Characters[0].transform.localPosition = new Vector3(MAX_X / 2, 0.1f, MAX_Y);
-                    players[2].Characters[0].transform.localPosition = new Vector3(-MAX_X / 2, 0.1f, -MAX_Y);
-                    players[3].Characters[0].transform.localPosition = new Vector3(MAX_X / 2, 0.1f, -MAX_Y);
-                    players[0].IsTopOrBottom = true;
-                    players[1].IsTopOrBottom = true;
-                    players[2].IsTopOrBottom = false;
-                    players[3].IsTopOrBottom = false;*/
+                    playerUIPositions.Add(Tuple.Create(false, new Vector3(-MAX_X / 2, 0.1f, -MAX_Y)));
                     break;
                 }
             case 5:
@@ -394,16 +450,6 @@ public class Game : MonoBehaviourPun
                     playerUIPositions.Add(Tuple.Create(true, new Vector3(MAX_X * 3 / 4, 0.1f, MAX_Y)));
                     playerUIPositions.Add(Tuple.Create(false, new Vector3(-MAX_X * 2 / 3, 0.1f, -MAX_Y)));
                     playerUIPositions.Add(Tuple.Create(false, new Vector3(MAX_X * 2 / 3, 0.1f, -MAX_Y)));
-                    /*players[0].Characters[0].transform.localPosition = new Vector3(-MAX_X * 3 / 4, 0.1f, MAX_Y);
-                    players[1].Characters[0].transform.localPosition = new Vector3(0, 0.1f, MAX_Y);
-                    players[2].Characters[0].transform.localPosition = new Vector3(MAX_X * 3 / 4, 0.1f, MAX_Y);
-                    players[3].Characters[0].transform.localPosition = new Vector3(-MAX_X * 2 / 3, 0.1f, -MAX_Y);
-                    players[4].Characters[0].transform.localPosition = new Vector3(MAX_X * 2 / 3, 0.1f, -MAX_Y);
-                    players[0].IsTopOrBottom = true;
-                    players[1].IsTopOrBottom = true;
-                    players[2].IsTopOrBottom = true;
-                    players[3].IsTopOrBottom = false;
-                    players[4].IsTopOrBottom = false;*/
                     break;
                 }
             case 6:
@@ -411,21 +457,9 @@ public class Game : MonoBehaviourPun
                     playerUIPositions.Add(Tuple.Create(true, new Vector3(-MAX_X * 3 / 4, 0.1f, MAX_Y)));
                     playerUIPositions.Add(Tuple.Create(true, new Vector3(0, 0.1f, MAX_Y)));
                     playerUIPositions.Add(Tuple.Create(true, new Vector3(MAX_X * 3 / 4, 0.1f, MAX_Y)));
-                    playerUIPositions.Add(Tuple.Create(false, new Vector3(-MAX_X * 3 / 4, 0.1f, -MAX_Y)));
-                    playerUIPositions.Add(Tuple.Create(false, new Vector3(0, 0.1f, -MAX_Y)));
                     playerUIPositions.Add(Tuple.Create(false, new Vector3(MAX_X * 3 / 4, 0.1f, -MAX_Y)));
-                    /*players[0].Characters[0].transform.localPosition = new Vector3(-MAX_X * 3 / 4, 0.1f, MAX_Y);
-                    players[1].Characters[0].transform.localPosition = new Vector3(0, 0.1f, MAX_Y);
-                    players[2].Characters[0].transform.localPosition = new Vector3(MAX_X * 3 / 4, 0.1f, MAX_Y);
-                    players[3].Characters[0].transform.localPosition = new Vector3(-MAX_X * 3 / 4, 0.1f, -MAX_Y);
-                    players[4].Characters[0].transform.localPosition = new Vector3(0, 0.1f, -MAX_Y);
-                    players[5].Characters[0].transform.localPosition = new Vector3(MAX_X * 3 / 4, 0.1f, -MAX_Y);
-                    players[0].IsTopOrBottom = true;
-                    players[1].IsTopOrBottom = true;
-                    players[2].IsTopOrBottom = true;
-                    players[3].IsTopOrBottom = false;
-                    players[4].IsTopOrBottom = false;
-                    players[5].IsTopOrBottom = false;*/
+                    playerUIPositions.Add(Tuple.Create(false, new Vector3(0, 0.1f, -MAX_Y)));
+                    playerUIPositions.Add(Tuple.Create(false, new Vector3(-MAX_X * 3 / 4, 0.1f, -MAX_Y)));
                     break;
                 }
             case 7:
@@ -434,23 +468,9 @@ public class Game : MonoBehaviourPun
                     playerUIPositions.Add(Tuple.Create(true, new Vector3(-MAX_X * 4 / 15, 0.1f, MAX_Y)));
                     playerUIPositions.Add(Tuple.Create(true, new Vector3(MAX_X* 4 / 15, 0.1f, MAX_Y)));
                     playerUIPositions.Add(Tuple.Create(true, new Vector3(MAX_X * 4 / 5, 0.1f, MAX_Y)));
-                    playerUIPositions.Add(Tuple.Create(false, new Vector3(-MAX_X * 3 / 4, 0.1f, -MAX_Y)));
-                    playerUIPositions.Add(Tuple.Create(false, new Vector3(0, 0.1f, -MAX_Y)));
                     playerUIPositions.Add(Tuple.Create(false, new Vector3(MAX_X * 3 / 4, 0.1f, -MAX_Y)));
-                    /*players[0].Characters[0].transform.localPosition = new Vector3(-MAX_X * 4 / 5, 0.1f, MAX_Y);
-                    players[1].Characters[0].transform.localPosition = new Vector3(-MAX_X * 4 / 15, 0.1f, MAX_Y);
-                    players[2].Characters[0].transform.localPosition = new Vector3(MAX_X * 4 / 15, 0.1f, MAX_Y);
-                    players[3].Characters[0].transform.localPosition = new Vector3(MAX_X * 4 / 5, 0.1f, MAX_Y);
-                    players[4].Characters[0].transform.localPosition = new Vector3(-MAX_X * 3 / 4, 0.1f, -MAX_Y);
-                    players[5].Characters[0].transform.localPosition = new Vector3(0, 0.1f, -MAX_Y);
-                    players[6].Characters[0].transform.localPosition = new Vector3(MAX_X * 3 / 4, 0.1f, -MAX_Y);
-                    players[0].IsTopOrBottom = true;
-                    players[1].IsTopOrBottom = true;
-                    players[2].IsTopOrBottom = true;
-                    players[3].IsTopOrBottom = true;
-                    players[4].IsTopOrBottom = false;
-                    players[5].IsTopOrBottom = false;
-                    players[6].IsTopOrBottom = false;*/
+                    playerUIPositions.Add(Tuple.Create(false, new Vector3(0, 0.1f, -MAX_Y)));
+                    playerUIPositions.Add(Tuple.Create(false, new Vector3(-MAX_X * 3 / 4, 0.1f, -MAX_Y)));
                     break;
                 }
             case 8:
@@ -459,26 +479,10 @@ public class Game : MonoBehaviourPun
                     playerUIPositions.Add(Tuple.Create(true, new Vector3(-MAX_X * 4 / 15, 0.1f, MAX_Y)));
                     playerUIPositions.Add(Tuple.Create(true, new Vector3(MAX_X * 4 / 15, 0.1f, MAX_Y)));
                     playerUIPositions.Add(Tuple.Create(true, new Vector3(MAX_X * 4 / 5, 0.1f, MAX_Y)));
-                    playerUIPositions.Add(Tuple.Create(false, new Vector3(-MAX_X * 4 / 5, 0.1f, -MAX_Y)));
-                    playerUIPositions.Add(Tuple.Create(false, new Vector3(-MAX_X * 4 / 15, 0.1f, -MAX_Y)));
-                    playerUIPositions.Add(Tuple.Create(false, new Vector3(MAX_X * 4 / 15, 0.1f, -MAX_Y)));
                     playerUIPositions.Add(Tuple.Create(false, new Vector3(MAX_X * 4 / 5, 0.1f, -MAX_Y)));
-                    /*players[0].Characters[0].transform.localPosition = new Vector3(-MAX_X * 4 / 5, 0.1f, MAX_Y);
-                    players[1].Characters[0].transform.localPosition = new Vector3(-MAX_X * 4 / 15, 0.1f, MAX_Y);
-                    players[2].Characters[0].transform.localPosition = new Vector3(MAX_X * 4 / 15, 0.1f, MAX_Y);
-                    players[3].Characters[0].transform.localPosition = new Vector3(MAX_X * 4 / 5, 0.1f, MAX_Y);
-                    players[4].Characters[0].transform.localPosition = new Vector3(-MAX_X * 4 / 5, 0.1f, -MAX_Y);
-                    players[5].Characters[0].transform.localPosition = new Vector3(-MAX_X * 4 / 15, 0.1f, -MAX_Y);
-                    players[6].Characters[0].transform.localPosition = new Vector3(MAX_X * 4 / 15, 0.1f, -MAX_Y);
-                    players[7].Characters[0].transform.localPosition = new Vector3(MAX_X * 4 / 5, 0.1f, -MAX_Y);
-                    players[0].IsTopOrBottom = true;
-                    players[1].IsTopOrBottom = true;
-                    players[2].IsTopOrBottom = true;
-                    players[3].IsTopOrBottom = true;
-                    players[4].IsTopOrBottom = false;
-                    players[5].IsTopOrBottom = false;
-                    players[6].IsTopOrBottom = false;
-                    players[7].IsTopOrBottom = false;*/
+                    playerUIPositions.Add(Tuple.Create(false, new Vector3(MAX_X * 4 / 15, 0.1f, -MAX_Y)));
+                    playerUIPositions.Add(Tuple.Create(false, new Vector3(-MAX_X * 4 / 15, 0.1f, -MAX_Y)));
+                    playerUIPositions.Add(Tuple.Create(false, new Vector3(-MAX_X * 4 / 5, 0.1f, -MAX_Y)));
                     break;
                 }
         }

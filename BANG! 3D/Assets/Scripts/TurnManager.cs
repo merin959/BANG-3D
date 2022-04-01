@@ -1,3 +1,4 @@
+using Photon.Pun;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,6 +9,8 @@ public class TurnManager : MonoBehaviour
     public static TurnManager instance;
     public event Action<Player> EndTurn;
 
+    private Player activePlayer;
+
     void Start()
     {
         instance = this;
@@ -16,10 +19,12 @@ public class TurnManager : MonoBehaviour
 
     internal void DoTurn(Player activePlayer)
     {
-        DoPhase1(activePlayer); 
+        this.activePlayer = activePlayer;
+        activePlayer.CanClick = true;
+        DoPhase1(); 
     }
 
-    private void DoPhase1(Player activePlayer)
+    private void DoPhase1()
     {
                          // v- this number will change with effects and abilities
         for (int i = 0; i < 2; i++)
@@ -28,29 +33,27 @@ public class TurnManager : MonoBehaviour
             activePlayer.DrawCard(c);
             Game.instance.cardDeck.RemoveAt(0);
         }
-        /*activePlayer.FixCardAngles();
-        Card cc = Game.instance.cardDeck[0];
-        cc.FlipCard();
-        activePlayer.DrawCard(cc);
-        Game.instance.cardDeck.RemoveAt(0);*/
-        //activePlayer.FixCardAngles();
-        DoPhase2(activePlayer);
+        DoPhase2();
     }
 
-    private void DoPhase2(Player activePlayer)
+    private void DoPhase2()
     {
 
     }
-    private void DoPhase3(Player activePlayer)
+
+    private void DoPhase3()
     {
-        //EndTurn?.Invoke(activePlayer);
+        activePlayer.CanClick = false;
+        activePlayer = null;
+        EndTurn?.Invoke(activePlayer);
     }
 
 
-    private void OnReturnTargettedCard(Player targetedPlayer)
+    private void OnReturnTargettedCard(Player targetedPlayer, Card targettingCard)
     {
         TargetingSystem.instance.HideTarget();
+        CardDatabase.instance.GetCardEffect(targettingCard, activePlayer, targetedPlayer);
         //tohle se zmìní po implementaci multiplayeru, tohle je kvùli testování multiplayeri
-        targetedPlayer.Lifes--;
+        //targetedPlayer.Lifes--;
     }
 }

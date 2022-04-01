@@ -177,6 +177,7 @@ public class CardDatabase : MonoBehaviour
         cardDatas.Add(Tuplify(0, "Springfield", "Dodge City/Playing cards/Springfield", "Play this card and discard any other card to deal 1 damage to any player.", "K", '♠', 0, null, null, null, null, null));
         cardDatas.Add(Tuplify(0, "Tequila", "Dodge City/Playing cards/Tequila", "Play this card and discard any other card to restore 1 life to any player (including yourself).", "9", '♣', 0, null, null, null, null, null));
         cardDatas.Add(Tuplify(0, "Whisky", "Dodge City/Playing cards/Whisky", "Play this card and discard any other card to restore 2 lifes.", "Q", '♥', 0, null, null, null, null, null));
+        cardDatas.Add(Tuplify(1, "High Noon", "High Noon/Mezzogiorno di Fuoco", "Each player loses 1 life at the start of their turn.", "", null, null, null, null, null, null, null));
         cardDatas.Add(Tuplify(1, "Blessing", "High Noon/Benedizione", "The suit of all cards is ♥.", "", null, null, null, null, null, null, null));
         cardDatas.Add(Tuplify(1, "Ghost Town", "High Noon/Città Fantasma", "During their turn, eliminated players return to the game as ghosts. In phase 1, they draw 3 cards and cannot die. At the end of their turn, they are eliminated again.", "", null, null, null, null, null, null, null));
         cardDatas.Add(Tuplify(1, "Gold Rush", "High Noon/Corsa all'Oro", "The game proceeds counter-clockwise for one round, starting with Sheriff. Effects proceed clockwise.", "", null, null, null, null, null, null, null));
@@ -189,7 +190,7 @@ public class CardDatabase : MonoBehaviour
         cardDatas.Add(Tuplify(1, "The Sermon", "High Noon/Sermone", "Players cannot play BANG!.", "", null, null, null, null, null, null, null));
         cardDatas.Add(Tuplify(1, "Thirst", "High Noon/Sete", "Each player only draws 1 card in phase 1.", "", null, null, null, null, null, null, null));
         cardDatas.Add(Tuplify(1, "Shootout", "High Noon/Sparatoria", "Each player can play a second BANG! during his turn.", "", null, null, null, null, null, null, null));
-        cardDatas.Add(Tuplify(1, "High Noon", "High Noon/Mezzogiorno di Fuoco", "Each player loses 1 life at the start of their turn.", "", null, null, null, null, null, null, null));
+        cardDatas.Add(Tuplify(2, "A Fistful of Cards", "A Fistful of Cards/Per un Ugno di Carte", "At the beginning of his turn, the player is target of as many BANGs! as the number of the cards in his hand.", "", null, null, null, null, null, null, null));
         cardDatas.Add(Tuplify(2, "Ambush", "A Fistful of Cards/Agguato", "The distance between any two players is 1. This is modified only by cards in play.", "", null, null, null, null, null, null, null));
         cardDatas.Add(Tuplify(2, "Sniper", "A Fistful of Cards/Cecchino", "During your turn, the player may play 2 BANGs! together againts a player, this counts as a BANG! it may be cancelled only by 2 Missed! effects.", "", null, null, null, null, null, null, null));
         cardDatas.Add(Tuplify(2, "Dead Man", "A Fistful of Cards/Dead Man", "During his turn, the player who was eliminated first comes back to play with 2 lifes and 2 cards.", "", null, null, null, null, null, null, null));
@@ -204,7 +205,7 @@ public class CardDatabase : MonoBehaviour
         cardDatas.Add(Tuplify(2, "Rinochet", "A Fistful of Cards/Rimbalzo", "Each player may play BANG! againts a card in play in front of any player; the card is discarded if its owner doesn't play a Missed! effect.", "", null, null, null, null, null, null, null));
         cardDatas.Add(Tuplify(2, "Russian Roulette", "A Fistful of Cards/Roulette Russa", "When Russian Roulette enters play, starting from the Sheriff each player must discard Missed!, until one player doesn't; he loses 2 lifes and the Roulette ends.", "", null, null, null, null, null, null, null));
         cardDatas.Add(Tuplify(2, "Vendetta", "A Fistful of Cards/Vendetta", "At the end of his turn, each player tests. If it is ♥, he plays another turn (at the end of which he doesn't test for this again).", "", null, null, null, null, null, null, null));
-        cardDatas.Add(Tuplify(2, "A Fistful of Cards", "A Fistful of Cards/Per un Ugno di Carte", "At the beginning of his turn, the player is target of as many BANGs! as the number of the cards in his hand.", "", null, null, null, null, null, null, null));
+        cardDatas.Add(Tuplify(3, "Wild West Show", "Wild West Show/WWS cards/Wild West Show", "The goal of each player becomes: \"Be the last one in play!\"", "", null, null, null, null, null, null, null));
         cardDatas.Add(Tuplify(3, "Ambush", "Wild West Show/WWS cards/Bavaglio", "Players cannot talk. Whoever talks, loses 1 life.", "", null, null, null, null, null, null, null));
         cardDatas.Add(Tuplify(3, "Bone Orchard", "Wild West Show/WWS cards/Camposanto", "At the start of their turn, each eliminated player returns to play with 1 life. Deal them roles at random from those of the eliminated players.", "", null, null, null, null, null, null, null));
         cardDatas.Add(Tuplify(3, "Darling Valentine", "Wild West Show/WWS cards/Darling Valentine", "At the start of his turn (before phase 1), each players discards his hand and draws the same number of cards.", "", null, null, null, null, null, null, null));
@@ -214,7 +215,6 @@ public class CardDatabase : MonoBehaviour
         cardDatas.Add(Tuplify(3, "Miss Susanna", "Wild West Show/WWS cards/Miss Susanna", "During phase 2, each player must play at least 3 cards. If he doesn't, he loses 1 life.", "", null, null, null, null, null, null, null));
         cardDatas.Add(Tuplify(3, "Showdown", "Wild West Show/WWS cards/Regolamento di Conti", "All cards may be played as they were BANG!. All BANGs! may be played as they were Missed!.", "", null, null, null, null, null, null, null));
         cardDatas.Add(Tuplify(3, "Sacagaway", "Wild West Show/WWS cards/Sacagaway", "All players play with their hands revealed.", "", null, null, null, null, null, null, null));
-        cardDatas.Add(Tuplify(3, "Wild West Show", "Wild West Show/WWS cards/Wild West Show", "The goal of each player becomes: \"Be the last one in play!\"", "", null, null, null, null, null, null, null));
         cardDatas.Add(Tuplify(4, "Shot", "Gold Rush/Loot cards/Bicchierino", "Any player of your choice restores 1 life.", "", null, null, null, 1, 0, null, null));
         cardDatas.Add(Tuplify(4, "Shot", "Gold Rush/Loot cards/Bicchierino", "Any player of your choice restores 1 life.", "", null, null, null, 1, 0, null, null));
         cardDatas.Add(Tuplify(4, "Shot", "Gold Rush/Loot cards/Bicchierino", "Any player of your choice restores 1 life.", "", null, null, null, 1, 0, null, null));
@@ -277,7 +277,7 @@ public class CardDatabase : MonoBehaviour
         cardDatas.Add(Tuplify(5, "Pixie Pete", "Dodge City/Characters/Pixie Pete", "In phase 1, he draws 3 cards instead of 2.", "", null, null, null, null, null, 3, null));
         cardDatas.Add(Tuplify(5, "Sean Mallory", "Dodge City/Characters/Sean Mallory", "He may hold up to 10 cards at the end of his turn.", "", null, null, null, null, null, 4, null));
         cardDatas.Add(Tuplify(5, "Tequila Joe", "Dodge City/Characters/Tequila Joe", "Each time he plays a Beer, he restores 2 lifes instead of 1.", "", null, null, null, null, null, 4, null));
-        cardDatas.Add(Tuplify(5, "Vera Custer", "Dodge City/Characters/Vera Custer", "Before phase 1, she chooses another character in play and gains its effect until the start of her next turn.", "", null, null, null, null, null, 4, null));
+        cardDatas.Add(Tuplify(5, "Vera Custer", "Dodge City/Characters/Vera Custer", "Before phase 1, she chooses another character in play and gains its effect until the start of her next turn.", "", null, null, null, null, null, 3, null));
         cardDatas.Add(Tuplify(5, "Don Bell", "Gold Rush/Characters/Don Bell", "At the end of his turn, he tests. If it is ♥ or ♦, he plays an extra turn (at the end of which he doesn't test for this again).", "", null, null, null, null, null, 4, null));
         cardDatas.Add(Tuplify(5, "Dutch Will", "Gold Rush/Characters/Dutch Will", "In phase 1, he draws 2 cards, chooses 1 to discards and takes 1 gold nugget.", "", null, null, null, null, null, 4, null));
         cardDatas.Add(Tuplify(5, "Jacky Murieta", "Gold Rush/Characters/Jacky Murieta", "During his turn, he may pay 2 gold nuggets to shoot 1 extra BANG! (no card required).", "", null, null, null, null, null, 4, null));
@@ -316,5 +316,17 @@ public class CardDatabase : MonoBehaviour
     private Tuple<int, Tuple<string, string, string>, Tuple<string, char?, int?>, int?, Tuple<int?, int?>, int?, int?> Tuplify(int cardType, string cardName, string cardPath, string cardDescription, string playingCardValue, char? playingCardColor, int? playingCardType, int? numberOfLoadTokens, int? lootCardCost, int? lootCardType, int? characterCardLives, int? shootingDistance)
     {
         return Tuple.Create(cardType, Tuple.Create(cardName, "Textures/" + cardPath, cardDescription), Tuple.Create(playingCardValue, playingCardColor, playingCardType), numberOfLoadTokens, Tuple.Create(lootCardCost, lootCardType), characterCardLives, shootingDistance);
+    }
+
+    public void GetCardEffect(Card targettingCard, Player targettingPlayer, Player targettedPlayer)
+    {
+        switch (targettingCard.CardName)
+        {
+            case "BANG!":
+                {
+                    targettedPlayer.Lifes--;
+                    break;
+                }
+        }
     }
 }
