@@ -38,4 +38,9 @@ public class ConnectToServer : MonoBehaviourPunCallbacks
         UnityEngine.SceneManagement.SceneManager.LoadScene("MenuScene");
         PhotonNetwork.Disconnect();
     }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)) OnClickConnect();
+    }
 }

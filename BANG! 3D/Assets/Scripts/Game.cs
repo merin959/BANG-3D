@@ -49,10 +49,11 @@ public class Game : MonoBehaviourPun
 
     private List<Tuple<bool, Vector3>> playerUIPositions;
 
+    private Card[] activeEfectCards = new Card[3] { null, null, null};
+
     private void Start()
     {
         instance = this;
-        TurnManager.instance.EndTurn += OnEndTurn;
         if (PhotonNetwork.IsMasterClient) photonView.RPC("SetUpDecks", RpcTarget.MasterClient);
         if (PhotonNetwork.IsMasterClient) photonView.RPC("SetUpOthersDecks", RpcTarget.OthersBuffered);
         if (PhotonNetwork.IsMasterClient) photonView.RPC("CreatePlayers", RpcTarget.MasterClient);
@@ -104,7 +105,7 @@ public class Game : MonoBehaviourPun
                     }
                 case 4:
                     {
-                        Card newCard = PhotonNetwork.Instantiate(Card.name, new Vector3(72, 0, 0), Quaternion.identity, 0, cardInfoObject).GetComponent<Card>();
+                        Card newCard = PhotonNetwork.Instantiate(Card.name, new Vector3(95, 0, 0), Quaternion.identity, 0, cardInfoObject).GetComponent<Card>();
                         newCard.FlipCard();
                         lootDeck.Add(newCard);
                         break;
@@ -123,13 +124,13 @@ public class Game : MonoBehaviourPun
                     }
             }
         }
-        /*Shuffle(cardDeck);
+        Shuffle(cardDeck);
         Shuffle(highNoonDeck);
         Shuffle(fistfulDeck);
         Shuffle(wildWestDeck);
         Shuffle(lootDeck);
         Shuffle(characterDeck);
-        Shuffle(roleDeck);*/
+        Shuffle(roleDeck);
     }
 
     [PunRPC]
@@ -215,7 +216,7 @@ public class Game : MonoBehaviourPun
             players.Add(newPlayerInfo);
         }
 
-        for (int j = 30; j <= 60; j += 14)
+        for (int j = 40; j <= 70; j += 15)
         {
             lootDeck.First().transform.localPosition = new Vector3(j, 0, 0);
             lootDeck.First().FlipCard();
@@ -223,6 +224,12 @@ public class Game : MonoBehaviourPun
             lootDeck.RemoveAt(0);
         }
 
+        photonView.RPC("PreparePlayers", RpcTarget.All);
+    }
+
+    [PunRPC]
+    private void PreparePlayers()
+    {
         foreach (Player pl in players) { if (pl.Role.CardName == "Sheriff") sheriff = pl; break; }
         activePlayer = sheriff;
         turnNumber = 1;
@@ -234,16 +241,15 @@ public class Game : MonoBehaviourPun
         foreach (KeyValuePair<int, Photon.Realtime.Player> player in PhotonNetwork.CurrentRoom.Players)
         {
             Player _player = players[player.Key - 1];
-            for (int i = 0; i < _player.MaximumCardsInHand; i++)
+            for (int i = 0; i < (_player.MainCharacter.CardName == "Sean Mallory" ? 3 : _player.MaximumCardsInHand); i++)
             {
                 Card drawnCard = cardDeck.First();
                 drawnCard.ChangeOwner(player.Value);
                 _player.DrawCard(cardDeck.First());
-                cardDeck.Remove(drawnCard);
             }
             _player.SetUpCardsInHand();
         }
-        //TurnManager.instance.DoTurn(activePlayer);
+        TurnManager.instance.DoTurn(activePlayer);
     }
 
     internal RaycastHit CastRay()
@@ -288,7 +294,7 @@ public class Game : MonoBehaviourPun
 
                 if (hit.collider != null)
                 {
-                    if (!hit.collider.CompareTag("Drag")) return;
+                    if (!hit.collider.CompareTag("Drag") || TurnManager.instance.ActivePhase < 2) return;
 
                     dragAndDropObject = hit.collider.gameObject.GetComponent<Card>();
                     if (dragAndDropObject.CanBeMoved)//
@@ -305,13 +311,23 @@ public class Game : MonoBehaviourPun
                 Vector3 worldPosition = GameCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, GameCamera.WorldToScreenPoint(dragAndDropObject.transform.position).z));
                 if ((dragAndDropObject.transform.localPosition.x < 15 && dragAndDropObject.transform.localPosition.x > 5) &&
                     (dragAndDropObject.transform.localPosition.z < 10 && dragAndDropObject.transform.localPosition.z > -10) &&
-                    dragAndDropObject.EligibleDestination == "Discard deck")
+                    (dragAndDropObject.EligibleDestination == "Discard deck" || TurnManager.instance.ActivePhase == 3))
                 {
                     dragAndDropObject.transform.localPosition = new Vector3(10, discardDeck.Count * 0.02f, 0);
                     discardDeck.Add(dragAndDropObject);
                     activePlayer.RemoveCardFromHand(dragAndDropObject);
                     dragAndDropObject.CanBeMoved = false;
-                    TargetingSystem.instance.ShowTarget(dragAndDropObject);
+                    try
+                    {
+                        foreach (Player _player in players)
+                        {
+                            _player.photonView.RPC("SetUpCardsInHand", RpcTarget.AllBuffered);
+                            _player.photonView.RPC("SetUpCardsInPlay", RpcTarget.AllBuffered);
+                            _player.photonView.RPC("SetUpUI", RpcTarget.AllBuffered);
+                        }
+                    }
+                    catch { }
+                    if (TurnManager.instance.ActivePhase == 2) TargetingSystem.instance.ShowTarget(dragAndDropObject);
                 }
                 else if((dragAndDropObject.transform.localPosition.x < activePlayer.Characters[0].transform.localPosition.x + MAX_X_IN_PLAY && dragAndDropObject.transform.localPosition.x > activePlayer.Characters[0].transform.localPosition.x - MAX_X_IN_PLAY) &&
                     (activePlayer.IsTopOrBottom ? dragAndDropObject.transform.localPosition.z < MAX_Z_IN_PLAY && dragAndDropObject.transform.localPosition.z > MAX_Z_IN_PLAY - 16 : dragAndDropObject.transform.localPosition.z > -MAX_Z_IN_PLAY && dragAndDropObject.transform.localPosition.z < MAX_Z_IN_PLAY + 16) &&
@@ -321,6 +337,16 @@ public class Game : MonoBehaviourPun
                     activePlayer.AddCardToPlay(dragAndDropObject);
                     dragAndDropObject.CanBeMoved = false;
                     activePlayer.RemoveCardFromHand(dragAndDropObject);
+                    try
+                    {
+                        foreach (Player _player in players)
+                        {
+                            _player.photonView.RPC("SetUpCardsInHand", RpcTarget.AllBuffered);
+                            _player.photonView.RPC("SetUpCardsInPlay", RpcTarget.AllBuffered);
+                            _player.photonView.RPC("SetUpUI", RpcTarget.AllBuffered);
+                        }
+                    }
+                    catch { }
                 }
                 else
                 {
@@ -374,12 +400,13 @@ public class Game : MonoBehaviourPun
         if(Input.GetKey(KeyCode.E) && Input.GetKey(KeyCode.A) && Input.GetKey(KeyCode.S) && Input.GetKey(KeyCode.T) && !players[PhotonNetwork.LocalPlayer.ActorNumber - 1].HasActivatedEasterEgg)
         {
             players[PhotonNetwork.LocalPlayer.ActorNumber - 1].DrawCard(cardDeck.Last());
-            cardDeck.Remove(cardDeck.Last());
             players[PhotonNetwork.LocalPlayer.ActorNumber - 1].HasActivatedEasterEgg = true;
+            Debug.Log("Easter egg byl vykonán.");
         }
     }
 
-    private void OnEndTurn(Player player)
+    [PunRPC]
+    public void OnEndTurn()
     {
         try
         {
@@ -392,23 +419,30 @@ public class Game : MonoBehaviourPun
         if (activePlayer.Role.CardName == "Sheriff")
         {
             turnNumber++;
-            FlipEffectCards(highNoonDeck);
-            FlipEffectCards(fistfulDeck);
-            FlipEffectCards(wildWestDeck);
+            FlipEffectCards(highNoonDeck, 0);
+            FlipEffectCards(fistfulDeck, 1);
+            //FlipEffectCards(wildWestDeck, 2);
         }
-        TurnManager.instance.DoTurn(activePlayer);
     }
 
-    private void FlipEffectCards(List<Card> deck)
+    private void FlipEffectCards(List<Card> deck, int index)
     {
-        if(deck.Count > 1)
+        if(deck.Count > 0)
         {
-            if (turnNumber > 2)
+            if (turnNumber > 1)
             {
-                deck[0].transform.localPosition = new Vector3(0, -5, 0);
-                deck.RemoveAt(0);
+                try
+                {
+                    activeEfectCards[index].transform.localPosition = new Vector3(0, 0, 100);
+                    Destroy(activeEfectCards[index]);
+                }
+                catch { }
+                activeEfectCards[index] = deck.First();
+                activeEfectCards[index].transform.localPosition = new Vector3(deck.First().transform.localPosition.x, 0.05f, deck.First().transform.localPosition.z);
+                deck.Remove(activeEfectCards[index]);
+                //její efekt
             }
-            deck[0].FlipCard();
+            activeEfectCards[index].FlipCard();
         }
     }
 

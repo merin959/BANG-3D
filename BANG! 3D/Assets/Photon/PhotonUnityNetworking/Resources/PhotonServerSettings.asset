@@ -63,6 +63,8 @@ MonoBehaviour:
   - SetUpUI
   - ShowTarget
   - HideTarget
+  - PreparePlayers
+  - OnEndTurn
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

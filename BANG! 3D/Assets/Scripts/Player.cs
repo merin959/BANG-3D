@@ -22,7 +22,7 @@ public class Player : MonoBehaviourPun, IPunInstantiateMagicCallback     //fix c
             photonView.RPC("SetUpUI", RpcTarget.AllBuffered);
         }
     }
-    public int? MaximumCardsInHand { get { return (mainCharacter.CardName == "Big Spencer" && lifes > 5) ? 5 : lifes; } }
+    public int? MaximumCardsInHand { get { return (mainCharacter.CardName == "Big Spencer" && lifes > 5) ? 5 : (mainCharacter.CardName == "Sean Mallory") ? 10 :lifes; } }
     private Card role;
     public Card Role
     {
@@ -118,6 +118,7 @@ public class Player : MonoBehaviourPun, IPunInstantiateMagicCallback     //fix c
     public void DrawCard(Card drawnCard)
     {
         cardsInHand.Add(drawnCard);
+        Game.instance.cardDeck.Remove(drawnCard);
         if (photonView.IsMine) drawnCard.FlipCard();
         SetUpCardsInHand();
         SetUpCardsInPlay();
@@ -147,8 +148,8 @@ public class Player : MonoBehaviourPun, IPunInstantiateMagicCallback     //fix c
                 Characters[0].transform.localPosition.x + (CardsInHand.Count % 2 == 0 ? 2.5f : 0) + i * 5f,
                 j * 0.01f,
                 Characters[0].transform.localPosition.z > 0 ?
-                (CardsInHand.Count % 2 == 0 ? Characters[0].transform.localPosition.z - 8f + Math.Abs(i >= 0 ? i + 1 : i) * 0.5f : Characters[0].transform.localPosition.z - 8f + Math.Abs(i) * 0.5f) :
-                CardsInHand.Count % 2 == 0 ? Characters[0].transform.localPosition.z + 8f - Math.Abs(i >= 0 ? i + 1 : i) * 0.5f : Characters[0].transform.localPosition.z + 8f - Math.Abs(i) * 0.5f);
+                (CardsInHand.Count % 2 == 0 ? Characters[0].transform.localPosition.z - 8f + Math.Abs(i >= 0 ? i + 1 : i) * 0.6f : Characters[0].transform.localPosition.z - 8f + Math.Abs(i) * 0.6f) :
+                CardsInHand.Count % 2 == 0 ? Characters[0].transform.localPosition.z + 8f - Math.Abs(i >= 0 ? i + 1 : i) * 0.6f : Characters[0].transform.localPosition.z + 8f - Math.Abs(i) * 0.6f);
             if (isTopOrBottom) CardsInHand[j].transform.Rotate(0, CardsInHand[j].IsFlipped ? -((CardsInHand.Count % 2 == 0 ? 3.5f : 0) + i * 5f + 180) : ((CardsInHand.Count % 2 == 0 ? 3.5f : 0) + i * 5f + 180), 0);
             else CardsInHand[j].transform.Rotate(0, CardsInHand[j].IsFlipped ? -((CardsInHand.Count % 2 == 0 ? -3.5f : 0) - i * 5f) : ((CardsInHand.Count % 2 == 0 ? -3.5f : 0) - i * 5f), 0);
             j++;

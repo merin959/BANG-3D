@@ -131,7 +131,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks
         if (PhotonNetwork.IsMasterClient && PhotonNetwork.CurrentRoom.PlayerCount >= 1 /*4*/) playButton.SetActive(true);
         else playButton.SetActive(false);
 
-        if (Input.GetKeyDown(KeyCode.KeypadEnter) && lobbyPanel.activeSelf) OnClickCreate();
+        if ((Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)) && lobbyPanel.activeSelf) OnClickCreate();
     }
 
     public void OnClickPlayButton()
