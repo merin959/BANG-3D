@@ -23,12 +23,14 @@ public class Card : MonoBehaviourPun, IPunInstantiateMagicCallback
     private string cardDescription;
     private string playingCardValue;
     private char? playingCardColor;
+    public char? PlayingCardColor => playingCardColor;
     private int? playingCardType;      // 0 = brown, 1 = blue, 2 = green, 3 = orange
     private int? numberOfLoadTokens;
     //private Effect cardEffect;
     private int? lootCardCost;
     private int? lootCardType;        // 0 = brown, 1 = black
     private int? shootingDistance;
+    public int? ShootingDistance => shootingDistance;
     private int? characterCardLives;
     public int? CharacterCardLives { get { return characterCardLives; } }
     private bool isFlipped;

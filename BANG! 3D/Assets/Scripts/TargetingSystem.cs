@@ -35,7 +35,7 @@ public class TargetingSystem : MonoBehaviourPun
             if (hit.collider != null)
             {
                 if (!hit.collider.CompareTag("Drag")) return;
-                if (hit.collider.gameObject.GetComponent<Card>().CardType == 5 && hit.collider.gameObject.GetComponent<Card>() != Game.instance.activePlayer.MainCharacter) target.GetComponent<Image>().color = new Color32(0, 215, 0, 169);
+                if (hit.collider.gameObject.GetComponent<Card>().CardType == 5 && hit.collider.gameObject.GetComponent<Card>() != TurnManager.instance.ActivePlayer.MainCharacter) target.GetComponent<Image>().color = new Color32(0, 215, 0, 169);
                 else target.GetComponent<Image>().color = new Color32(215, 0, 10, 169);
             }
                 
@@ -57,18 +57,21 @@ public class TargetingSystem : MonoBehaviourPun
         targettingCard = card;
 
         target.position = Input.mousePosition;
-        gun.position = Game.instance.activePlayer.transform.position;
-        //gun type
-        //tohle je pokud není zbraò, jinak se musí zmìnit a na 255
-        gun.GetComponent<Image>().color = new Color32(255, 255, 255, 0);
+        gun.position = TurnManager.instance.ActivePlayer.transform.position;
+        if (card.CardName == "BANG!")
+        {
+            Tuple<string, int> gunInfo = Tuple.Create("Colt 45", 0);
+            foreach (Card c in TurnManager.instance.ActivePlayer.CardsInPlay) if (c.ShootingDistance != null) gunInfo = Tuple.Create(c.CardName, (int)c.ShootingDistance);
+            gun.GetComponent<Image>().sprite = Resources.Load<Sprite>("Textures/Targeting options/" + gunInfo.Item1);
+            gun.GetComponent<Image>().color = new Color32(255, 255, 255, 255);
+        }
+        else gun.GetComponent<Image>().color = new Color32(255, 255, 255, 0);
     }
 
     public void HideTarget()
     {
         isActive = false;
         targettingCard = null;
-        try { foreach (Player p in Game.instance.players) p.photonView.RPC("SetUpUI", RpcTarget.AllBuffered); }
-        catch { }
         gameObject.SetActive(false);
     }
 

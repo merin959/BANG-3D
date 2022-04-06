@@ -22,12 +22,16 @@ public class Game : MonoBehaviourPun
     private Vector3 ddObjectPosition;
     private Quaternion ddObjectRotation;
 
+    public bool IsDragAndDropActive => dragAndDropObject != null;
+
     private Card tooltipObject;
 
-    internal Player activePlayer;
+    /*internal Player activePlayer;
+    private int activePlayerIndex;*/
     private Player sheriff;
 
     public List<Player> players = new List<Player>(); 
+    public List<Player> deadPlayers = new List<Player>(); 
     public List<Card> cardDeck = new List<Card>();      // 164
     public List<Card> discardDeck = new List<Card>();
     public List<Card> highNoonDeck = new List<Card>();  // 13
@@ -38,6 +42,8 @@ public class Game : MonoBehaviourPun
     public List<Card> characterDeck = new List<Card>(); // 63
     public List<Card> roleDeck = new List<Card>();      // 9 (-1 - Shadow Renegate)
     public List<Card> gameRoleDeck = new List<Card>();
+
+    public Text InfoMessage;
 
     private float MAX_X = 97;
     private float MAX_Y = 50;
@@ -51,13 +57,22 @@ public class Game : MonoBehaviourPun
 
     private Card[] activeEfectCards = new Card[3] { null, null, null};
 
+    private static string[] staticNicknames = new string[8] { "Daniel", "Joshua", "Wendy", "Alex", "Judy", "Antonio", "Gwen", "Peter" };
+
+    private bool waitingForResponse;
+    public bool WaitingForResponse
+    {
+        get { return waitingForResponse; }
+        set { waitingForResponse = value; }
+    }
+
     private void Start()
     {
         instance = this;
-        if (PhotonNetwork.IsMasterClient) photonView.RPC("SetUpDecks", RpcTarget.MasterClient);
-        if (PhotonNetwork.IsMasterClient) photonView.RPC("SetUpOthersDecks", RpcTarget.OthersBuffered);
-        if (PhotonNetwork.IsMasterClient) photonView.RPC("CreatePlayers", RpcTarget.MasterClient);
-        if (PhotonNetwork.IsMasterClient) photonView.RPC("StartGame", RpcTarget.MasterClient);
+        waitingForResponse = false;
+        SetUpDecks();
+        CreatePlayers();
+        StartGame();
     }
 
     private void Update()
@@ -65,7 +80,6 @@ public class Game : MonoBehaviourPun
         HandleInput();
     }
 
-    [PunRPC]
     private void SetUpDecks()
     {
         foreach (Tuple<int, Tuple<string, string, string>, Tuple<string, char?, int?>, int?, Tuple<int?, int?>, int?, int?> cardInfo in CardDatabase.instance.CardDatas)
@@ -124,72 +138,20 @@ public class Game : MonoBehaviourPun
                     }
             }
         }
-        Shuffle(cardDeck);
+        //Shuffle(cardDeck);
         Shuffle(highNoonDeck);
         Shuffle(fistfulDeck);
         Shuffle(wildWestDeck);
         Shuffle(lootDeck);
         Shuffle(characterDeck);
-        Shuffle(roleDeck);
-    }
-
-    [PunRPC]
-    public void SetUpOthersDecks()
-    {
-        for (int i = 0; i < GameArea.transform.childCount; i++)
-        {
-            Card c = GameArea.transform.GetChild(i).gameObject.GetComponent<Card>();
-            switch (c.CardType)
-            {
-                case 0:
-                    {
-                        cardDeck.Add(c);
-                        break;
-                    }
-                case 1:
-                    {
-                        highNoonDeck.Add(c);
-                        break;
-                    }
-                case 2:
-                    {
-                        fistfulDeck.Add(c);
-                        break;
-                    }
-                case 3:
-                    {
-                        wildWestDeck.Add(c);
-                        break;
-                    }
-                case 4:
-                    {
-                        lootDeck.Add(c);
-                        break;
-                    }
-                case 5:
-                    {
-                        characterDeck.Add(c);
-                        break;
-                    }
-                case 6:
-                    {
-                        roleDeck.Add(c);
-                        break;
-                    }
-            }
-        }
+        //Shuffle(roleDeck);
     }
 
     public static List<Card> Shuffle(List<Card> deck)
     {
         Card tr = null;
         if (deck.First().CardName == "High Noon" || deck.First().CardName == "A Fistful of Cards" || deck.First().CardName == "Wild West Show") { tr = deck.First(); deck.RemoveAt(0); }
-        if (deck.First().CardName == "Sheriff")
-        {
-            List<Card> tempRole = new List<Card>();
-            for (int i = 0; i < PhotonNetwork.CurrentRoom.PlayerCount; i++) tempRole.Add(deck[i]);
-            deck = tempRole;
-        }
+
         System.Random r = new System.Random();
         int n = deck.Count;
         while (n > 1)
@@ -204,16 +166,17 @@ public class Game : MonoBehaviourPun
         return deck;
     }
 
-    [PunRPC]
     private void CreatePlayers()
     {
         playerUIPositions = SetUpPlayerPositions(); 
-        foreach (KeyValuePair<int, Photon.Realtime.Player> player in PhotonNetwork.CurrentRoom.Players)
+        for (int i = 0; i < 8; i++)
         {
-            characterDeck[players.Count].transform.localPosition = playerUIPositions[players.Count].Item2;//new Vector3(MAX_X, 0, player.Value.ActorNumber * 25 - 73);
-            Player newPlayerInfo = PhotonNetwork.Instantiate(PlayerInfo.name, GetUIPosition(characterDeck[players.Count].transform), Quaternion.identity, 0, new object[3] { playerUIPositions[players.Count].Item1, player.Value.NickName, players.Count }).GetComponent<Player>();
-            newPlayerInfo.photonView.TransferOwnership(player.Value);
+            characterDeck[players.Count].transform.localPosition = playerUIPositions[players.Count].Item2;
+            Player newPlayerInfo = PhotonNetwork.Instantiate(PlayerInfo.name, GetUIPosition(characterDeck[players.Count].transform), Quaternion.identity, 0, new object[3] { playerUIPositions[players.Count].Item1, staticNicknames[i], players.Count }).GetComponent<Player>();
             players.Add(newPlayerInfo);
+            if (newPlayerInfo.MainCharacter.CardName == "Greg Digger") Debug.Log("Gerg Digger in game");
+            if (newPlayerInfo.MainCharacter.CardName == "Herb Hunter") Debug.Log("Herb Hunter in game");
+            if (newPlayerInfo.MainCharacter.CardName == "Vulture Sam") Debug.Log("Vulture Sam in game");
         }
 
         for (int j = 40; j <= 70; j += 15)
@@ -223,33 +186,21 @@ public class Game : MonoBehaviourPun
             lootDeckOnTable.Add(lootDeck.First());
             lootDeck.RemoveAt(0);
         }
-
-        photonView.RPC("PreparePlayers", RpcTarget.All);
     }
 
-    [PunRPC]
-    private void PreparePlayers()
-    {
-        foreach (Player pl in players) { if (pl.Role.CardName == "Sheriff") sheriff = pl; break; }
-        activePlayer = sheriff;
-        turnNumber = 1;
-    }
-
-    [PunRPC]
     private void StartGame()
     {
-        foreach (KeyValuePair<int, Photon.Realtime.Player> player in PhotonNetwork.CurrentRoom.Players)
+        foreach (Player _player in players)
         {
-            Player _player = players[player.Key - 1];
             for (int i = 0; i < (_player.MainCharacter.CardName == "Sean Mallory" ? 3 : _player.MaximumCardsInHand); i++)
             {
-                Card drawnCard = cardDeck.First();
-                drawnCard.ChangeOwner(player.Value);
                 _player.DrawCard(cardDeck.First());
             }
             _player.SetUpCardsInHand();
         }
-        TurnManager.instance.DoTurn(activePlayer);
+        turnNumber = 1;
+        foreach (Player pl in players) { if (pl.Role.CardName == "Sheriff") { sheriff = pl; break; } }
+        TurnManager.instance.DoTurn(sheriff);
     }
 
     internal RaycastHit CastRay()
@@ -275,16 +226,6 @@ public class Game : MonoBehaviourPun
         if (Input.GetMouseButtonDown(0))
         {
             if (TargetingSystem.instance.IsActive) return;
-            Photon.Realtime.Player x = null;
-            bool toReturn = false;
-            try
-            {
-                x = activePlayer.photonView.Owner;
-            }
-            catch { toReturn = true; }
-            finally { if (x != PhotonNetwork.LocalPlayer) toReturn = true; }
-
-            if (toReturn) return;
 
             if (dragAndDropObject == null)
             {
@@ -297,7 +238,7 @@ public class Game : MonoBehaviourPun
                     if (!hit.collider.CompareTag("Drag") || TurnManager.instance.ActivePhase < 2) return;
 
                     dragAndDropObject = hit.collider.gameObject.GetComponent<Card>();
-                    if (dragAndDropObject.CanBeMoved)//
+                    if (dragAndDropObject.CanBeMoved)
                     {
                         if (dragAndDropObject.IsFlipped) { ddObjectPosition = dragAndDropObject.transform.position; ddObjectRotation = dragAndDropObject.transform.rotation; dragAndDropObject.transform.eulerAngles = new Vector3(0, 0, 0); dragAndDropObject.enabled = false; }
                         else dragAndDropObject = null;
@@ -315,38 +256,37 @@ public class Game : MonoBehaviourPun
                 {
                     dragAndDropObject.transform.localPosition = new Vector3(10, discardDeck.Count * 0.02f, 0);
                     discardDeck.Add(dragAndDropObject);
-                    activePlayer.RemoveCardFromHand(dragAndDropObject);
+                    TurnManager.instance.ActivePlayer.RemoveCardFromHand(dragAndDropObject);
+                    TurnManager.instance.ActivePlayer.RemoveCardFromPlay(dragAndDropObject);
                     dragAndDropObject.CanBeMoved = false;
-                    try
-                    {
-                        foreach (Player _player in players)
-                        {
-                            _player.photonView.RPC("SetUpCardsInHand", RpcTarget.AllBuffered);
-                            _player.photonView.RPC("SetUpCardsInPlay", RpcTarget.AllBuffered);
-                            _player.photonView.RPC("SetUpUI", RpcTarget.AllBuffered);
-                        }
-                    }
-                    catch { }
-                    if (TurnManager.instance.ActivePhase == 2) TargetingSystem.instance.ShowTarget(dragAndDropObject);
+                    if (TurnManager.instance.ActivePhase == 3) { dragAndDropObject = null; return; }
+                    else if (TurnManager.instance.ActivePhase == 2 && (dragAndDropObject.CardName != "Beer" && dragAndDropObject.CardName != "Saloon" && dragAndDropObject.CardName != "Last Call" &&
+                        dragAndDropObject.CardName != "Stagecoach" && dragAndDropObject.CardName != "Wells Fargo")) 
+                        TargetingSystem.instance.ShowTarget(dragAndDropObject);
+                    else CardDatabase.instance.GetCardEffect(dragAndDropObject, TurnManager.instance.ActivePlayer, null);
                 }
-                else if((dragAndDropObject.transform.localPosition.x < activePlayer.Characters[0].transform.localPosition.x + MAX_X_IN_PLAY && dragAndDropObject.transform.localPosition.x > activePlayer.Characters[0].transform.localPosition.x - MAX_X_IN_PLAY) &&
-                    (activePlayer.IsTopOrBottom ? dragAndDropObject.transform.localPosition.z < MAX_Z_IN_PLAY && dragAndDropObject.transform.localPosition.z > MAX_Z_IN_PLAY - 16 : dragAndDropObject.transform.localPosition.z > -MAX_Z_IN_PLAY && dragAndDropObject.transform.localPosition.z < MAX_Z_IN_PLAY + 16) &&
-                    dragAndDropObject.EligibleDestination == "In front of a player")
+                else if((dragAndDropObject.transform.localPosition.x < TurnManager.instance.ActivePlayer.Characters[0].transform.localPosition.x + MAX_X_IN_PLAY && dragAndDropObject.transform.localPosition.x > TurnManager.instance.ActivePlayer.Characters[0].transform.localPosition.x - MAX_X_IN_PLAY) &&
+                    (TurnManager.instance.ActivePlayer.IsTopOrBottom ? dragAndDropObject.transform.localPosition.z < MAX_Z_IN_PLAY && dragAndDropObject.transform.localPosition.z > MAX_Z_IN_PLAY - 16 : dragAndDropObject.transform.localPosition.z > -MAX_Z_IN_PLAY && dragAndDropObject.transform.localPosition.z < MAX_Z_IN_PLAY + 16) &&
+                    dragAndDropObject.EligibleDestination == "In front of a player" && TurnManager.instance.ActivePhase != 3)
                 {
-                    discardDeck.Add(dragAndDropObject);
-                    activePlayer.AddCardToPlay(dragAndDropObject);
-                    dragAndDropObject.CanBeMoved = false;
-                    activePlayer.RemoveCardFromHand(dragAndDropObject);
-                    try
+                    bool qqq = true;
+                    foreach(Card c in TurnManager.instance.ActivePlayer.CardsInPlay)
                     {
-                        foreach (Player _player in players)
+                        if(dragAndDropObject.CardName == c.CardName)
                         {
-                            _player.photonView.RPC("SetUpCardsInHand", RpcTarget.AllBuffered);
-                            _player.photonView.RPC("SetUpCardsInPlay", RpcTarget.AllBuffered);
-                            _player.photonView.RPC("SetUpUI", RpcTarget.AllBuffered);
+                            InfoMessage.text = "You cannot have two cards with the same name in play.";
+                            dragAndDropObject.transform.position = ddObjectPosition;
+                            dragAndDropObject.transform.rotation = ddObjectRotation;
+                            qqq = false;
+                            break;
                         }
                     }
-                    catch { }
+                    if (qqq)
+                    {
+                        TurnManager.instance.ActivePlayer.AddCardToPlay(dragAndDropObject);
+                        dragAndDropObject.CanBeMoved = false;
+                        TurnManager.instance.ActivePlayer.RemoveCardFromHand(dragAndDropObject);
+                    }
                 }
                 else
                 {
@@ -397,17 +337,18 @@ public class Game : MonoBehaviourPun
             }
         }
 
-        if(Input.GetKey(KeyCode.E) && Input.GetKey(KeyCode.A) && Input.GetKey(KeyCode.S) && Input.GetKey(KeyCode.T) && !players[PhotonNetwork.LocalPlayer.ActorNumber - 1].HasActivatedEasterEgg)
+        if(Input.GetKey(KeyCode.E) && Input.GetKey(KeyCode.A) && Input.GetKey(KeyCode.S) && Input.GetKey(KeyCode.T) && !TurnManager.instance.ActivePlayer.HasActivatedEasterEgg)
         {
-            players[PhotonNetwork.LocalPlayer.ActorNumber - 1].DrawCard(cardDeck.Last());
-            players[PhotonNetwork.LocalPlayer.ActorNumber - 1].HasActivatedEasterEgg = true;
+            TurnManager.instance.ActivePlayer.DrawCard(cardDeck.Last());
+            TurnManager.instance.ActivePlayer.HasActivatedEasterEgg = true;
             Debug.Log("Easter egg byl vykonán.");
         }
     }
 
-    [PunRPC]
-    public void OnEndTurn()
+    public void OnEndTurn(Player activePlayer)
     {
+        foreach (Card c in activePlayer.CardsInHand) c.FlipCard();
+        foreach (Card c in activePlayer.CardsInPlay) { c.EligibleDestination = "Discard deck"; c.CanBeMoved = true; }
         try
         {
             activePlayer = players[players.FindIndex(a => a.Equals(activePlayer)) + 1];
@@ -415,7 +356,7 @@ public class Game : MonoBehaviourPun
         catch
         {
             activePlayer = players[0];
-        }
+        }   
         if (activePlayer.Role.CardName == "Sheriff")
         {
             turnNumber++;
@@ -423,13 +364,14 @@ public class Game : MonoBehaviourPun
             FlipEffectCards(fistfulDeck, 1);
             //FlipEffectCards(wildWestDeck, 2);
         }
+        TurnManager.instance.DoTurn(activePlayer);
     }
 
-    private void FlipEffectCards(List<Card> deck, int index)
+    public void FlipEffectCards(List<Card> deck, int index)
     {
         if(deck.Count > 0)
         {
-            if (turnNumber > 1)
+            if (turnNumber > 1 || index == 2)
             {
                 try
                 {
@@ -449,7 +391,8 @@ public class Game : MonoBehaviourPun
     private List<Tuple<bool, Vector3>> SetUpPlayerPositions()
     {
         List<Tuple<bool, Vector3>> playerUIPositions = new List<Tuple<bool, Vector3>>();
-        switch (PhotonNetwork.CurrentRoom.PlayerCount)
+        int x = 8;
+        switch (x)
         {
             case 1:
                 {
@@ -522,5 +465,141 @@ public class Game : MonoBehaviourPun
         }
 
         return playerUIPositions;
+    }
+
+
+    internal void PlayerDied(Player playerWhoDied)
+    {
+        bool normal = true;
+        foreach (Player pl in players)
+        {
+            switch (pl.MainCharacter.CardName)
+            {
+                case "Greg Digger":
+                    {
+                        pl.Lifes += 2;
+                        break;
+                    }
+                case "Herb Hunter":
+                    {
+                        for (int i = 0; i < 2; i++)
+                        {
+                            cardDeck.First().FlipCard();
+                            pl.DrawCard(cardDeck.First());
+                        }
+                        break;
+                    }
+                case "Vulture Sam":
+                    {
+                        List<Card> cardsToRemove = new List<Card>();
+
+                        for (int i = 0; i < playerWhoDied.CardsInHand.Count; i++)
+                        {
+                            Card c1 = playerWhoDied.CardsInHand[i];
+                            pl.AddCardToHand(c1);
+                            cardsToRemove.Add(c1);
+                            c1.CanBeMoved = false;
+                        }
+
+                        cardsToRemove.ForEach(c => playerWhoDied.RemoveCardFromHand(c, false));
+                        cardsToRemove.Clear();
+
+                        for (int i = 0; i < playerWhoDied.CardsInPlay.Count; i++)
+                        {
+                            Card c2 = playerWhoDied.CardsInPlay[i];
+                            pl.AddCardToHand(c2);
+                            cardsToRemove.Add(c2);
+                            c2.CanBeMoved = false;
+                        }
+
+                        cardsToRemove.ForEach(c => playerWhoDied.RemoveCardFromPlay(c, false));
+                        normal = false;
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+        }
+
+        if (normal)
+        {
+            List<Card> cardsToRemove = new List<Card>();
+            for (int i = 0; i < playerWhoDied.CardsInHand.Count; i++)
+            {
+                Card c1 = playerWhoDied.CardsInHand[i];
+                discardDeck.Add(c1);
+                cardsToRemove.Add(c1);
+                c1.CanBeMoved = false;
+                Vector3 newPosition = new Vector3(10, discardDeck.Count * 0.02f, 0);
+                c1.transform.localPosition = newPosition;
+                c1.transform.rotation = Quaternion.identity;
+                c1.IsFlipped = true;
+            }
+
+            cardsToRemove.ForEach(c => playerWhoDied.RemoveCardFromHand(c, false));
+            cardsToRemove.Clear();
+
+            for (int i = 0; i < playerWhoDied.CardsInPlay.Count; i++)
+            {
+                Card c2 = playerWhoDied.CardsInHand[i];
+                discardDeck.Add(c2);
+                cardsToRemove.Add(c2);
+                c2.CanBeMoved = false;
+                Vector3 newPosition = new Vector3(10, discardDeck.Count * 0.02f, 0);
+                c2.transform.localPosition = newPosition;
+                c2.transform.rotation = Quaternion.identity;
+                c2.IsFlipped = true;
+            }
+            cardsToRemove.ForEach(c => playerWhoDied.RemoveCardFromPlay(c, false));
+        }
+
+
+        InfoMessage.text = playerWhoDied.PlayerName + " (" + playerWhoDied.Role.CardName + ") died.";
+
+        deadPlayers.Add(playerWhoDied);
+        players.Remove(playerWhoDied);
+
+        if(sheriff.Lifes <= 0)
+        {
+            int i = 1;
+            InfoMessage.text = "Sheriff died. Outlaws (";
+            foreach (Player pl in players)
+            {
+                if (pl.Role.CardName == "Outlaw" && i == 1) InfoMessage.text += pl.PlayerName;
+                if (pl.Role.CardName == "Outlaw" && i > 1) InfoMessage.text += ", " + pl.PlayerName;
+                i++;
+            }
+            InfoMessage.text += ") are the winners!";
+        }
+
+        int? x = 0;
+        foreach (Player pl in players) if (pl.Role.CardName == "Outlaw" || pl.Role.CardName == "Renegade") x += pl.Lifes;
+        if (x <= 0)
+        {
+            int j = 1;
+            InfoMessage.text = "All outlaws and renegades died. Sheriff and deputies (";
+            foreach (Player pl in players)
+            {
+                if ((pl.Role.CardName == "Sheriff" || pl.Role.CardName == "Deputy") && j == 1) InfoMessage.text += pl.PlayerName;
+                if ((pl.Role.CardName == "Sheriff" || pl.Role.CardName == "Deputy") && j > 1) InfoMessage.text += ", " + pl.PlayerName;
+                j++;
+            }
+            InfoMessage.text += ") are the winners!";
+        }
+
+        if (players.Count == 1 && players.First().Role.CardName == "Renegade")
+        {
+            InfoMessage.text = "All other players died. " + players.First().PlayerName + " is the winner.";
+        }
+    }
+
+    public char? TestCard()
+    {
+        Card testedCard = cardDeck.First();
+        testedCard.FlipCard();
+        testedCard.transform.position = new Vector3(testedCard.transform.position.x, testedCard.transform.position.y + 0.1f, testedCard.transform.position.z);
+        return activeEfectCards[0].CardName == "Curse" ? '♠' : (activeEfectCards[0].CardName == "Blessing" ? '♥' : (testedCard.PlayingCardColor));
     }
 }

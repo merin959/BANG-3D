@@ -17,12 +17,19 @@ public class Player : MonoBehaviourPun, IPunInstantiateMagicCallback     //fix c
         get { return lifes; }
         set
         {
-            lifes = value;
-            //vyøešit vedle atd...
-            photonView.RPC("SetUpUI", RpcTarget.AllBuffered);
+            if(value > maxLifes) { Game.instance.InfoMessage.text = "You already have maximum lifes"; }
+            else
+            {
+                lifes = value;
+                SetUpUI();
+                if (lifes <= 0) Game.instance.PlayerDied(this);
+            }
         }
     }
-    public int? MaximumCardsInHand { get { return (mainCharacter.CardName == "Big Spencer" && lifes > 5) ? 5 : (mainCharacter.CardName == "Sean Mallory") ? 10 :lifes; } }
+
+    private int? maxLifes;
+
+    public int? MaximumCardsInHand { get { return (mainCharacter.CardName == "Big Spencer" && lifes > 5) ? 5 : (mainCharacter.CardName == "Sean Mallory") ? 10 : lifes; } }
     private Card role;
     public Card Role
     {
@@ -38,6 +45,7 @@ public class Player : MonoBehaviourPun, IPunInstantiateMagicCallback     //fix c
     private List<Card> cardsInPlay;
     public List<Card> CardsInPlay { get { return cardsInPlay; } }
     public List<Card> Characters { get { return new List<Card>() { mainCharacter, secondaryCharacter }; } }
+
     private int gold;
     public int Gold
     {
@@ -45,7 +53,7 @@ public class Player : MonoBehaviourPun, IPunInstantiateMagicCallback     //fix c
         set
         {
             gold = value;
-            photonView.RPC("SetUpUI", RpcTarget.AllBuffered);
+            SetUpUI();
         }
     }
     private Vector3 cardPositions;
@@ -57,6 +65,9 @@ public class Player : MonoBehaviourPun, IPunInstantiateMagicCallback     //fix c
 
     private bool isTopOrBottom;
     public bool IsTopOrBottom { get { return isTopOrBottom; } set { isTopOrBottom = value; } }
+
+    private bool canPlayBangThisTurn;
+    public bool CanPlayBangThisTurn { get { return canPlayBangThisTurn; } set { canPlayBangThisTurn = value; } }
 
     private float MAX_X_IN_PLAY = 17.4f;
     private float MAX_Z_IN_PLAY = 28.5f;
@@ -81,7 +92,6 @@ public class Player : MonoBehaviourPun, IPunInstantiateMagicCallback     //fix c
         HasActivatedEasterEgg = false;
     }
 
-    [PunRPC]
     public void SetUpInfo(object[] datas)
     {
         int ii = (int)datas[2];
@@ -93,15 +103,17 @@ public class Player : MonoBehaviourPun, IPunInstantiateMagicCallback     //fix c
         mainCharacter = Game.instance.characterDeck[ii];
         //secondaryCharacter = Game.instance.characterDeck.First();
 
-        Lifes = mainCharacter.CharacterCardLives;
+        if (role.CardName == "Sheriff") { transform.Find("PlayerName").GetComponent<Text>().color = new Color(227, 182, 0); Lifes = mainCharacter.CharacterCardLives + 1; }
+        else Lifes = mainCharacter.CharacterCardLives;
+
+        maxLifes = lifes;
         Gold = 0;
         playerName = (string)datas[1];
 
         IsTopOrBottom = (bool)datas[0];
 
-        if (role.CardName == "Sheriff") transform.Find("PlayerName").GetComponent<Text>().color = new Color(227, 182, 0);
 
-        transform.Find("PlayerName").GetComponent<Text>().text = PlayerName;
+        transform.Find("PlayerName").GetComponent<Text>().text = PlayerName + " (" + Role.CardName + ")";
         transform.Find("NumberOfGold").GetComponent<Text>().text = gold.ToString();
         transform.Find("NumberOfLives").GetComponent<Text>().text = lifes + "";
 
@@ -119,7 +131,14 @@ public class Player : MonoBehaviourPun, IPunInstantiateMagicCallback     //fix c
     {
         cardsInHand.Add(drawnCard);
         Game.instance.cardDeck.Remove(drawnCard);
-        if (photonView.IsMine) drawnCard.FlipCard();
+        //if (photonView.IsMine) drawnCard.FlipCard();
+        SetUpCardsInHand();
+        SetUpCardsInPlay();
+    }
+
+    public void AddCardToHand(Card cardToAdd)
+    {
+        cardsInHand.Add(cardToAdd);
         SetUpCardsInHand();
         SetUpCardsInPlay();
     }
@@ -137,7 +156,22 @@ public class Player : MonoBehaviourPun, IPunInstantiateMagicCallback     //fix c
         SetUpCardsInHand();
     }
 
-    [PunRPC]
+    public void RemoveCardFromHand(Card cardToRemove, bool x)
+    {
+        cardsInHand.Remove(cardToRemove);
+    }
+
+    public void RemoveCardFromPlay(Card cardToRemove, bool x)
+    {
+        cardsInHand.Remove(cardToRemove);
+    }
+
+    public void RemoveCardFromPlay(Card cardToRemove)
+    {
+        cardsInPlay.Remove(cardToRemove);
+        SetUpCardsInPlay();
+    }
+
     internal void SetUpCardsInHand()
     {
         int j = 0;
@@ -156,7 +190,6 @@ public class Player : MonoBehaviourPun, IPunInstantiateMagicCallback     //fix c
         }
     }
 
-    [PunRPC]
     internal void SetUpCardsInPlay()
     {
         for (int i = 0; i < CardsInPlay.Count; i++)
@@ -170,11 +203,18 @@ public class Player : MonoBehaviourPun, IPunInstantiateMagicCallback     //fix c
         }
     }
 
-    [PunRPC]
     public void SetUpUI()
     {
-        transform.Find("PlayerName").GetComponent<Text>().text = PlayerName;
+        transform.Find("PlayerName").GetComponent<Text>().text = PlayerName + " (" + Role.CardName + ")";
         transform.Find("NumberOfGold").GetComponent<Text>().text = gold.ToString();
         transform.Find("NumberOfLives").GetComponent<Text>().text = lifes + "";
+    }
+
+    internal bool CheckForBangResponse(Player targettingPlayer)
+    {
+        //foreach (Card c1 in targettingPlayer.CardsInHand) c1.FlipCard();
+        //foreach (Card c2 in CardsInHand) c2.FlipCard();
+        Lifes--;
+        return true;
     }
 }

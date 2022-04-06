@@ -8,9 +8,9 @@ using UnityEngine;
 public class TurnManager : MonoBehaviour
 {
     public static TurnManager instance;
-    public event Action<Player> EndTurn;
 
     private Player activePlayer;
+    public Player ActivePlayer => activePlayer;
 
     private int activePhase;
     public int ActivePhase => activePhase;
@@ -25,56 +25,45 @@ public class TurnManager : MonoBehaviour
     {
         activePhase = 1;
         this.activePlayer = activePlayer;
+        this.activePlayer.CanPlayBangThisTurn = true;
+        foreach (Card c in this.activePlayer.CardsInHand) c.FlipCard();
         activePlayer.CanClick = true;
-        Debug.Log("Draw Cards");
+        Game.instance.InfoMessage.text = "Phase 1: Press enter to draw cards.";
     }
 
     private void DoPhase1()
     {
         activePhase++;
-        Debug.Log("Play turn");
+        Game.instance.InfoMessage.text = "Phase 2: You can now play cards, press enter to end Phase 2.";
         // v- this number will change with effects and abilities
-        for (int i = 0; i < 2; i++) activePlayer.DrawCard(Game.instance.cardDeck.First());
+        for (int i = 0; i < 2; i++)
+        {
+            Game.instance.cardDeck.First().FlipCard();
+            activePlayer.DrawCard(Game.instance.cardDeck.First());
+        }
     }
 
     private void DoPhase2()
     {
         activePhase++;
-        Debug.Log("Discrad cards");
+        Game.instance.InfoMessage.text = "Phase 3: You can now discard excess cards, press enter to end your turn.";
     }
 
     private void DoPhase3()
     {
-        activePhase++;
-        Debug.Log("Turn ended");
         activePlayer.CanClick = false;
-        //EndTurn?.Invoke(activePlayer);
-        Game.instance.photonView.RPC("OnEndTurn", RpcTarget.AllBuffered);
-        DoTurn(Game.instance.activePlayer);
+        Game.instance.OnEndTurn(activePlayer);
     }
-
 
     private void OnReturnTargettedCard(Player targetedPlayer, Card targettingCard)
     {
         TargetingSystem.instance.HideTarget();
-        try
-        {
-            foreach (Player _player in Game.instance.players)
-            {
-                _player.photonView.RPC("SetUpCardsInHand", RpcTarget.AllBuffered);
-                _player.photonView.RPC("SetUpCardsInPlay", RpcTarget.AllBuffered);
-                _player.photonView.RPC("SetUpUI", RpcTarget.AllBuffered);
-            }
-        }
-        catch { }
         CardDatabase.instance.GetCardEffect(targettingCard, activePlayer, targetedPlayer);
-        //tohle se zmìní po implementaci multiplayeru, tohle je kvùli testování multiplayeri
-        //targetedPlayer.Lifes--;
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Return) && activePlayer.photonView.Owner == PhotonNetwork.LocalPlayer)
+        if ((Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)) && !TargetingSystem.instance.IsActive && !Game.instance.IsDragAndDropActive)
         {
             switch (activePhase)
             {
@@ -82,9 +71,9 @@ public class TurnManager : MonoBehaviour
                 case 2: { DoPhase2(); break; }
                 case 3:
                     {
-                        if (activePlayer.CardsInHand.Count > activePlayer.MaximumCardsInHand) { Debug.Log("Too much cards in hand"); break; }
+                        if (activePlayer.CardsInHand.Count > activePlayer.MaximumCardsInHand) { Game.instance.InfoMessage.text = "You have too much cards in hand. You need to discard some!"; break; }
                         else DoPhase3();
-                        return;
+                        break;
                     }
             }
         }
